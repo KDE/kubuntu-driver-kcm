@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# Copyright (C) 2013 Rohan Garg <rohangarg@kubuntu.org>
+
+import sys
+
+import dbus
+import dbus.service
+import dbus.mainloop.qt
+from UbuntuDrivers import detect
+from PyQt4.QtCore import QCoreApplication, QTimer
+
+BUS_NAME = "com.kubuntu.DriverManager"
+
+class DriverManager(dbus.service.Object):
+
+    __timer = None
+
+    def __init__(self, session_bus, parent):
+        self.driver_map=detect.system_device_drivers()
+        dbus.service.Object.__init__(self, session_bus,'/DriverManager')
+        self.__timer = QTimer(parent)
+        self.__timer.timeout.connect(self.quit)
+        self.__timer.start(30000)
+
+    @dbus.service.method(BUS_NAME,
+                         in_signature='b', out_signature='a{sa{sv}}')
+    def getDriverDict(self, refresh):
+        print("Called")
+        if refresh:
+            self.driver_map = detect.system_device_drivers()
+        return self.driver_map
+
+    @dbus.service.method(BUS_NAME,
+                         in_signature='', out_signature='')
+    def keepAlive(self):
+        self.__timer.start()
+
+    @dbus.service.method(BUS_NAME,
+                         in_signature='s', out_signature='a{sa{sv}}')
+    def getDriverMapForDevice(self, device):
+        return self.driver_map[device]["drivers"]
+
+    def quit(self):
+        sys.exit()
+
+if __name__ == '__main__':
+    app = QCoreApplication(sys.argv)
+    dbus.mainloop.qt.DBusQtMainLoop(set_as_default=True)
+    bus = dbus.SessionBus()
+    name = dbus.service.BusName("org.kubuntu.DriverManager", bus)
+    dbus_manager = DriverManager(session_bus=bus, parent=app)
+    sys.exit(app.exec())

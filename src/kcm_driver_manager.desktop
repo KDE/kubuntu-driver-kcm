@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Service
+Icon=office-chart-area-focus-peak-node
+Exec=kcmshell4 kcm-drivermanager
+
+X-KDE-Library=kcm_drivermanager
+X-KDE-ServiceTypes=KCModule
+X-KDE-System-Settings-Parent-Category=system-administration
+X-KDE-System-Settings-Parent-Category-V2=system-administration
+X-KDE-ParentApp=kcontrol
+X-KDE-PluginKeyword=kcm-drivermanager
+X-KDE-Keywords=((X-KDE-Keywords))
+Categories=Qt;KDE;X-KDE-settings-system-administration;
+
+Name=Driver Manager for Kubuntu
