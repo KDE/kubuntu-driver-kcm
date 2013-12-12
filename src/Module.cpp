@@ -49,6 +49,7 @@ K_PLUGIN_FACTORY_DECLARATION(KcmDriverFactory);
 Module::Module(QWidget *parent, const QVariantList &args)
     : KCModule(KcmDriverFactory::componentData(), parent, args)
     , ui(new Ui::Module)
+    , m_refresh(false)
 {
     KAboutData *about = new KAboutData("kcm-drivermanager", 0,
                                        ki18n("((Name))"),
@@ -78,6 +79,7 @@ Module::~Module()
 
 void Module::load()
 {
+    kDebug();
     QDBusPendingReply<QVariantMapMap> map = m_manager->getDriverDict(m_refresh);
     if (m_refresh) {
         m_refresh = false;
@@ -89,6 +91,7 @@ void Module::load()
 
 void Module::driverDictFinished(QDBusPendingCallWatcher* data)
 {
+    kDebug();
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
         kWarning() << "DBus data corrupted";
@@ -116,6 +119,7 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
 
 void Module::driverMapFinished(QDBusPendingCallWatcher* data)
 {
+    kDebug();
     QString deviceName = data->property("Name").toString();
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
@@ -143,6 +147,7 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
 
 void Module::refreshDriverList(bool)
 {
+    kDebug();
     delete ui;
     ui = new Ui::Module;
     ui->setupUi(this);
