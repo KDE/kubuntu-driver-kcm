@@ -31,6 +31,7 @@
 #include <KFontRequester>
 #include <Solid/DeviceNotifier>
 #include <Solid/Device>
+#include <KMessageBox>
 
 #include <QLabel>
 #include <QDBusMessage>
@@ -84,7 +85,8 @@ Module::Module(QWidget *parent, const QVariantList &args)
     QApt::FrontendCaps caps = (QApt::FrontendCaps)(QApt::DebconfCap | QApt::MediumPromptCap |
     QApt::UntrustedPromptCap);
     m_backend->setFrontendCaps(caps);
-    m_backend->init();
+    if (!m_backend->init())
+        initError();
     ui->progressBar->setVisible(false);
 }
 
@@ -244,6 +246,19 @@ void Module::restoreUi()
     ui->progressBar->setVisible(false);
     ui->pushButton->setEnabled(true);
 
+}
+
+void Module::initError()
+{
+    QString details = m_backend->initErrorMessage();
+
+    QString text = i18nc("@label",
+                         "The package system could not be initialized, your "
+                         "configuration may be broken.");
+    QString title = i18nc("@title:window", "Initialization error");
+
+    KMessageBox::detailedError(this, text, details, title);
+    exit(-1);
 }
 
 void Module::defaults()
