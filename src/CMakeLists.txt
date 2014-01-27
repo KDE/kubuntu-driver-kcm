@@ -14,14 +14,14 @@ qt4_add_dbus_interface(kcm_SRCS ${drivermanagerobject_xml} drivermanager_interfa
 dbus_add_activation_session_service(org.kubuntu.DriverManager.service.in)
 
 kde4_add_ui_files(kcm_SRCS Module.ui)
-kde4_add_plugin(kcm_drivermanager ${kcm_SRCS})
+kde4_add_plugin(kcm_driver_manager ${kcm_SRCS})
 
-target_link_libraries(kcm_drivermanager
+target_link_libraries(kcm_driver_manager
     ${KDE4_KDEUI_LIBRARY}
     ${KDE4_SOLID_LIBRARY}
     ${QAPT_LIBRARY}
 )
 
-install(TARGETS kcm_drivermanager DESTINATION ${PLUGIN_INSTALL_DIR})
+install(TARGETS kcm_driver_manager DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES kcm_driver_manager.desktop DESTINATION ${SERVICES_INSTALL_DIR})
 install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/DriverManager_DBus DESTINATION ${KDE4_LIBEXEC_INSTALL_DIR})

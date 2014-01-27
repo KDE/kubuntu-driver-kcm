@@ -3,7 +3,7 @@ Type=Service
 Icon=office-chart-area-focus-peak-node
 Exec=kcmshell4 kcm-drivermanager
 
-X-KDE-Library=kcm_drivermanager
+X-KDE-Library=kcm_driver_manager
 X-KDE-ServiceTypes=KCModule
 X-KDE-System-Settings-Parent-Category=system-administration
 X-KDE-System-Settings-Parent-Category-V2=system-administration
