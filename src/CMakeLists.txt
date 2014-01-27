@@ -11,7 +11,7 @@ set(drivermanagerobject_xml org.kubuntu.DriverManager.xml)
 set_source_files_properties(${drivermanagerobject_xml} PROPERTIES INCLUDE drivermanagerdbustypes.h)
 qt4_add_dbus_interface(kcm_SRCS ${drivermanagerobject_xml} drivermanager_interface)
 
-dbus_add_activation_system_service(org.kubuntu.DriverManager.service.in)
+dbus_add_activation_session_service(org.kubuntu.DriverManager.service.in)
 
 kde4_add_ui_files(kcm_SRCS Module.ui)
 kde4_add_plugin(kcm_drivermanager ${kcm_SRCS})
