@@ -34,6 +34,10 @@
     </spacer>
    </item>
    <item>
+    <widget class="QProgressBar" name="progressBar">
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -54,7 +58,9 @@
         <string>Refresh Driver List</string>
        </property>
        <property name="icon">
-        <iconset theme="view-refresh"/>
+        <iconset theme="view-refresh">
+         <normaloff/>
+        </iconset>
        </property>
       </widget>
      </item>

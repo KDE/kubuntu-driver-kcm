@@ -29,6 +29,8 @@
 #include <KPluginFactory>
 #include <KToolInvocation>
 #include <KFontRequester>
+#include <Solid/DeviceNotifier>
+#include <Solid/Device>
 
 #include <QLabel>
 #include <QDBusMessage>
@@ -37,6 +39,12 @@
 #include <QDBusReply>
 #include <QRadioButton>
 #include <QButtonGroup>
+#include <QFile>
+#include <QProgressBar>
+
+#include <LibQApt/Backend>
+#include <LibQApt/Transaction>
+
 #include <qdbusmetatype.h>
 
 #include "Version.h"
@@ -50,6 +58,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     : KCModule(KcmDriverFactory::componentData(), parent, args)
     , ui(new Ui::Module)
     , m_refresh(false)
+    , m_backend(new QApt::Backend)
 {
     KAboutData *about = new KAboutData("kcm-drivermanager", 0,
                                        ki18n("((Name))"),
@@ -62,14 +71,21 @@ Module::Module(QWidget *parent, const QVariantList &args)
 
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
+    m_notifier = Solid::DeviceNotifier::instance();
     m_manager = new ComKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
     ui->setupUi(this);
     connect(ui->pushButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList(bool)));
-//     connect(this, SIGNAL(this->buttons().))
+
     qDBusRegisterMetaType<QVariantMapMap>();
 
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
+
+    QApt::FrontendCaps caps = (QApt::FrontendCaps)(QApt::DebconfCap | QApt::MediumPromptCap |
+    QApt::UntrustedPromptCap);
+    m_backend->setFrontendCaps(caps);
+    m_backend->init();
+    ui->progressBar->setVisible(false);
 }
 
 Module::~Module()
@@ -80,6 +96,23 @@ Module::~Module()
 void Module::load()
 {
     kDebug();
+//     TODO: Implement figuring out which module is currently in use
+//     QFile file("/proc/modules");
+//     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+//         kDebug() << "Error opening /proc/modules";
+//         return;
+//     }
+// 
+//     QTextStream stream(&file);
+// 
+//     QString module = stream.readLine();
+//     while(!module.isNull()) {
+//         m_ModuleList.append(module.section(' ', 0, 0));
+//         module = stream.readLine();
+//     }
+// 
+//     kDebug() << m_ModuleList;
+
     QDBusPendingReply<QVariantMapMap> map = m_manager->getDriverDict(m_refresh);
     if (m_refresh) {
         m_refresh = false;
@@ -100,9 +133,8 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
 
     QVariantMapMap dictMap = mapReply.value();
 
-    Q_FOREACH(const QVariantMap &mapValue, dictMap.values()) {
-        QString key = dictMap.key(mapValue);
-
+    Q_FOREACH(const QString &key,dictMap.keys()) {
+        QVariantMap mapValue = dictMap[key];
         //Device Name extraction from Map
         QVariant vendor = mapValue.value("vendor");
         QVariant model = mapValue.value("model");
@@ -131,19 +163,31 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     ui->driverOptionsVLayout->addWidget(new QLabel(deviceName));
     QButtonGroup *radioGroup = new QButtonGroup(this);
     m_buttonListGroup.append(radioGroup);
-        Q_FOREACH(const QString &key, driverMap.keys()) {
+    Q_FOREACH(const QString &key, driverMap.keys()) {
             QVBoxLayout *internalVLayout = new QVBoxLayout();
-            internalVLayout->setParent(ui->driverOptionsVLayout);
             ui->driverOptionsVLayout->addLayout(internalVLayout);
-            QString driverString = key;
-            QRadioButton *button = new QRadioButton(driverString);
-            button->setProperty("driver", key);
-            internalVLayout->addWidget(button);
-            radioGroup->addButton(button);
+            QApt::Package *pkg;
+            pkg = m_backend->package(key);
+            QString driverString;
+            if (pkg) {
+                driverString = pkg->shortDescription();
+                QRadioButton *button = new QRadioButton(driverString);
+                button->setProperty("driver", key);
+                internalVLayout->addWidget(button);
+                radioGroup->addButton(button);
+            }
         }
+
+     connect(radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitDiff(QAbstractButton*)));
 
     data->deleteLater();
 }
+
+void Module::emitDiff(QAbstractButton*)
+{
+    emit changed();
+}
+
 
 void Module::refreshDriverList(bool)
 {
@@ -158,6 +202,47 @@ void Module::refreshDriverList(bool)
 
 void Module::save()
 {
+    QApt::PackageList packages;
+    QApt::Package *pkg;
+    QString packageStr;
+    Q_FOREACH(const QButtonGroup *group, m_buttonListGroup) {
+        packageStr = group->checkedButton()->property("driver").toString();
+        qDebug() << packageStr;
+        pkg = m_backend->package(packageStr);
+        if (pkg) {
+            packages.append(pkg);
+        }
+    }
+
+    m_trans = m_backend->installPackages(packages);
+    connect(m_trans, SIGNAL(progressChanged(int)), SLOT(progressChanged(int)));
+    connect(m_trans, SIGNAL(finished(QApt::ExitStatus)), SLOT(finished(QApt::ExitStatus)));
+    connect(m_trans, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(handleError(QApt::ErrorCode)));
+    m_trans->run();
+    ui->progressBar->setVisible(true);
+    ui->pushButton->setEnabled(false);
+}
+
+void Module::progressChanged(int progress)
+{
+    ui->progressBar->setValue(progress);
+}
+
+void Module::finished(QApt::ExitStatus)
+{
+    restoreUi();
+}
+
+void Module::handleError(QApt::ErrorCode)
+{
+    restoreUi();
+
+}
+
+void Module::restoreUi()
+{
+    ui->progressBar->setVisible(false);
+    ui->pushButton->setEnabled(true);
 
 }
 

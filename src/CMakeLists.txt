@@ -16,6 +16,8 @@ kde4_add_plugin(kcm_drivermanager ${kcm_SRCS})
 
 target_link_libraries(kcm_drivermanager
     ${KDE4_KDEUI_LIBRARY}
+    ${KDE4_SOLID_LIBRARY}
+    ${QAPT_LIBRARY}
 )
 
 install(TARGETS kcm_drivermanager DESTINATION ${PLUGIN_INSTALL_DIR})

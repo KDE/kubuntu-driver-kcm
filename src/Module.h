@@ -23,15 +23,28 @@
 #define MODULE_H
 
 #include <KCModule>
+
+#include <LibQApt/Globals>
+
 #include "drivermanagerdbustypes.h"
 
 namespace Ui {
     class Module;
 }
 
+namespace Solid {
+    class DeviceNotifier;
+}
+
+namespace QApt {
+    class Backend;
+    class Transaction;
+}
+
 class QDBusPendingCallWatcher;
 class ComKubuntuDriverManagerInterface;
 class QButtonGroup;
+class QAbstractButton;
 
 class Module : public KCModule
 {
@@ -72,11 +85,23 @@ private:
     ComKubuntuDriverManagerInterface* m_manager;
     bool m_refresh;
     QList<QButtonGroup*> m_buttonListGroup;
+    Solid::DeviceNotifier *m_notifier;
+    QStringList m_ModuleList;
+
+    QApt::Backend *m_backend;
+    QApt::Transaction *m_trans;
+
 
 private Q_SLOTS:
     void driverDictFinished(QDBusPendingCallWatcher*);
     void driverMapFinished(QDBusPendingCallWatcher*);
     void refreshDriverList(bool);
+    void emitDiff(QAbstractButton*);
+    void progressChanged(int);
+    void finished(QApt::ExitStatus);
+    void handleError(QApt::ErrorCode);
+    void restoreUi();
+
 };
 
 #endif // MODULE_H
