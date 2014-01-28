@@ -141,8 +141,7 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
         //Device Name extraction from Map
         QVariant vendor = mapValue.value("vendor");
         QVariant model = mapValue.value("model");
-        // TODO: Fix the following so it uses KDE Font sizes
-        QString label = "<h3>" + vendor.toString() + " " + model.toString() + "</h3>";
+        QString label = i18nc("%1 is vendor, %2 is model", "<title>%1 %2</title>", vendor.toString(), model.toString());
 
         QDBusPendingReply<QVariantMapMap> driverForDeviceMap = m_manager->getDriverMapForDevice(key);
         QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(driverForDeviceMap, this);
