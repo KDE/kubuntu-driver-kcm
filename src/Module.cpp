@@ -231,15 +231,16 @@ void Module::progressChanged(int progress)
     ui->progressBar->setValue(progress);
 }
 
-void Module::finished(QApt::ExitStatus)
+void Module::finished(QApt::ExitStatus status)
 {
+    m_backend->reloadCache();
     restoreUi();
 }
 
-void Module::handleError(QApt::ErrorCode)
+void Module::handleError(QApt::ErrorCode error)
 {
+    m_backend->reloadCache();
     restoreUi();
-
 }
 
 void Module::restoreUi()
@@ -265,5 +266,4 @@ void Module::initError()
 
 void Module::defaults()
 {
-
 }
