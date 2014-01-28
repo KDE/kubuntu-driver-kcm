@@ -32,6 +32,7 @@
 #include <Solid/DeviceNotifier>
 #include <Solid/Device>
 #include <KMessageBox>
+#include <KMessageWidget>
 
 #include <QLabel>
 #include <QDBusMessage>
@@ -255,10 +256,11 @@ void Module::initError()
     QString text = i18nc("@label",
                          "The package system could not be initialized, your "
                          "configuration may be broken.");
-    QString title = i18nc("@title:window", "Initialization error");
-
-    KMessageBox::detailedError(this, text, details, title);
-    exit(-1);
+    KMessageWidget *errorWidget = new KMessageWidget(text, this);
+    errorWidget->setToolTip(details);
+    ui->driverOptionsVLayout->addWidget(errorWidget);
+    errorWidget->setMessageType(KMessageWidget::Error);
+    errorWidget->show();
 }
 
 void Module::defaults()
