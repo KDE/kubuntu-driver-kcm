@@ -233,18 +233,98 @@ void Module::progressChanged(int progress)
 
 void Module::finished(QApt::ExitStatus status)
 {
-    m_backend->reloadCache();
-    restoreUi();
+    cleanup();
 }
 
 void Module::handleError(QApt::ErrorCode error)
 {
-    m_backend->reloadCache();
-    restoreUi();
+    QString text;
+    switch(error) {
+        case QApt::InitError: {
+            text = i18nc("@label",
+                         "The package system could not be initialized, your "
+                         "configuration may be broken.");
+            break;
+        }
+
+        case QApt::LockError: {
+            text = i18nc("@label",
+                         "Another application seems to be using the package "
+                         "system at this time. You must close all other package "
+                         "managers before you will be able to install or remove "
+                         "any packages.");
+            break;
+        }
+
+        case QApt::DiskSpaceError: {
+            text = i18nc("@label",
+                         "You do not have enough disk space in the directory "
+                         "at %1 to continue with this operation.", m_trans->errorDetails());
+            break;
+        }
+
+        case QApt::FetchError: {
+            text = i18nc("@label",
+                         "Could not download packages");
+            break;
+        }
+
+        case QApt::CommitError: {
+            text = i18nc("@label", "An error occurred while applying changes:");
+            break;
+        }
+
+        case QApt::AuthError: {
+            text = i18nc("@label",
+                         "This operation cannot continue since proper "
+                         "authorization was not provided");
+            break;
+        }
+
+        case QApt::WorkerDisappeared: {
+            text = i18nc("@label", "It appears that the QApt worker has either crashed "
+            "or disappeared. Please report a bug to the QApt maintainers");
+            break;
+        }
+
+        case QApt::UntrustedError: {
+            QStringList untrustedItems = m_trans->untrustedPackages();
+            if (untrustedItems.size() == 1) {
+                text = i18ncp("@label",
+                              "The following package has not been verified by its author. "
+                              "Downloading untrusted packages has been disallowed "
+                              "by your current configuration.",
+                              "The following packages have not been verified by "
+                              "their authors. "
+                              "Downloading untrusted packages has "
+                              "been disallowed by your current configuration.",
+                              untrustedItems.size());
+            }
+            break;
+        }
+
+        case QApt::NotFoundError: {
+            text = i18nc("@label",
+                         "The package \"%1\" has not been found among your software sources. "
+                         "Therefore, it cannot be installed. ",
+                         m_trans->errorDetails());
+            break;
+        }
+
+        case QApt::UnknownError:
+        default:
+            break;
+    }
+
+    KMessageWidget *errorWidget = new KMessageWidget(text, this);
+    errorWidget->setMessageType(KMessageWidget::Error);
+    ui->driverOptionsVLayout->insertWidget(0, errorWidget);
+    cleanup();
 }
 
-void Module::restoreUi()
+void Module::cleanup()
 {
+    m_backend->reloadCache();
     ui->progressBar->setVisible(false);
     ui->pushButton->setEnabled(true);
 

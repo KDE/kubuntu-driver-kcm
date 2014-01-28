@@ -100,7 +100,7 @@ private Q_SLOTS:
     void progressChanged(int);
     void finished(QApt::ExitStatus);
     void handleError(QApt::ErrorCode);
-    void restoreUi();
+    void cleanup();
     void initError();
 
 };
