@@ -61,6 +61,8 @@ Module::Module(QWidget *parent, const QVariantList &args)
     , ui(new Ui::Module)
     , m_refresh(false)
     , m_backend(new QApt::Backend)
+    , m_nonFreeInstalled(false)
+    , m_manualInstalled(false)
 {
     KAboutData *about = new KAboutData("kcm-drivermanager", 0,
                                        ki18n("((Name))"),
@@ -173,25 +175,64 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     QRadioButton *button;
 
     QVariantMapMap driverMap = mapReply.value();
-    Q_FOREACH(const QString &key, driverMap.keys()) {
+    Q_FOREACH (const QString &key, driverMap.keys()) {
             QVBoxLayout *internalVLayout = new QVBoxLayout();
             ui->driverOptionsVLayout->addLayout(internalVLayout);
-            QApt::Package *pkg;
-            pkg = m_backend->package(key);
+            QApt::Package *pkg = m_backend->package(key);
             QString driverString;
             if (pkg) {
                 driverString = pkg->shortDescription();
                 button = new QRadioButton(driverString);
                 button->setProperty("driver", key);
+                if (isActive(key, driverMap)) {
+                    button->setChecked(true);
+                }
                 internalVLayout->addWidget(button);
                 radioGroup->addButton(button);
                 m_widgetList.append(button);
+            } else {
+                // *Most* likely a manually installed driver. Check and add a Manual radio button
+                bool isManual = driverMap[key].value("manual_install").toBool();
+                if (isManual) {
+                    m_manualInstalled = true;
+                    button = new QRadioButton(i18nc("Manually installed 3rd party driver", "This device is using a manually-installed driver : (%1)", key));
+                    button->setChecked(true);
+                    internalVLayout->addWidget(button);
+                    radioGroup->addButton(button);
+                    m_widgetList.append(button);
+                }
             }
+
         }
 
      connect(radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitDiff(QAbstractButton*)));
 
     data->deleteLater();
+
+    // Don't forget to clean up manual and non free driver status
+    m_manualInstalled = false;
+    m_nonFreeInstalled = false;
+}
+
+bool Module::isActive(QString key, QVariantMapMap driverMap)
+{
+    // Nothing matters if manual driver or non free driver is installed
+    if (m_manualInstalled || m_nonFreeInstalled) {
+        return false;
+    }
+
+    QApt::Package *pkg = m_backend->package(key);
+    bool isFree = driverMap[key].value("free").toBool();
+
+    // Handle non free and free drivers that are installed
+    if (pkg->isInstalled()) {
+        if (!isFree) {
+            m_nonFreeInstalled = true;
+        }
+        return true;
+    }
+
+    return false;
 }
 
 void Module::emitDiff(QAbstractButton*)

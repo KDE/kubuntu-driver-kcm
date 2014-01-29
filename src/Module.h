@@ -91,6 +91,8 @@ private:
 
     QApt::Backend *m_backend;
     QApt::Transaction *m_trans;
+    bool m_manualInstalled;
+    bool m_nonFreeInstalled;
 
 
 private Q_SLOTS:
@@ -103,6 +105,7 @@ private Q_SLOTS:
     void handleError(QApt::ErrorCode);
     void cleanup();
     void initError();
+    bool isActive(QString key, QVariantMapMap driverMap);
 
 };
 
