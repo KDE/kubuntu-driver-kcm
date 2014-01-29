@@ -87,6 +87,7 @@ private:
     QList<QButtonGroup*> m_buttonListGroup;
     Solid::DeviceNotifier *m_notifier;
     QStringList m_ModuleList;
+    QList<QWidget*> m_widgetList;
 
     QApt::Backend *m_backend;
     QApt::Transaction *m_trans;

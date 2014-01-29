@@ -161,10 +161,18 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
         return;
     }
 
-    QVariantMapMap driverMap = mapReply.value();
-    ui->driverOptionsVLayout->addWidget(new QLabel(deviceName));
+    QLabel *label = new QLabel(deviceName);
+    ui->driverOptionsVLayout->addWidget(label);
+    // Ugly hack that maintains a list of widgets in the KCM in order to solve 
+    // layouting issues caued by hitting the refresh button
+    m_widgetList.append(label);
+
     QButtonGroup *radioGroup = new QButtonGroup(this);
     m_buttonListGroup.append(radioGroup);
+
+    QRadioButton *button;
+
+    QVariantMapMap driverMap = mapReply.value();
     Q_FOREACH(const QString &key, driverMap.keys()) {
             QVBoxLayout *internalVLayout = new QVBoxLayout();
             ui->driverOptionsVLayout->addLayout(internalVLayout);
@@ -173,10 +181,11 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
             QString driverString;
             if (pkg) {
                 driverString = pkg->shortDescription();
-                QRadioButton *button = new QRadioButton(driverString);
+                button = new QRadioButton(driverString);
                 button->setProperty("driver", key);
                 internalVLayout->addWidget(button);
                 radioGroup->addButton(button);
+                m_widgetList.append(button);
             }
         }
 
@@ -194,10 +203,8 @@ void Module::emitDiff(QAbstractButton*)
 void Module::refreshDriverList(bool)
 {
     kDebug();
-    delete ui;
-    ui = new Ui::Module;
-    ui->setupUi(this);
     m_refresh=true;
+    qDeleteAll(m_widgetList);
     load();
 }
 
