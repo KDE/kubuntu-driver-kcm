@@ -49,7 +49,10 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
             QApt::Package *pkg = m_backend->package(key);
 
             if (pkg) {
-                QString driverString = pkg->shortDescription();
+                QString driverString = i18nc("%1 is description and %2 is package name",
+                                             "Using %1 from %2",
+                                             pkg->shortDescription(),
+                                             pkg->name());
                 if (map[key]["recommended"].toBool()) {
                     driverString += i18nc("This particular driver is a recommended driver",
                                                          " (Recommended Driver)");
