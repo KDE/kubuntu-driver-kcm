@@ -50,6 +50,10 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
             QString driverString;
             if (pkg) {
                 driverString = pkg->shortDescription();
+                if (map[key]["recommended"].toBool()) {
+                    driverString += i18nc("This particular driver is a recommended driver",
+                                                         " (Recommended Driver)");
+                }
                 button = new QRadioButton(driverString);
                 button->setProperty("driver", key);
                 if (isActive(key, map)) {
