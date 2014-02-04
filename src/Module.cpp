@@ -81,8 +81,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
 
-    QApt::FrontendCaps caps = (QApt::FrontendCaps)(QApt::DebconfCap | QApt::MediumPromptCap |
-    QApt::UntrustedPromptCap);
+    QApt::FrontendCaps caps = (QApt::FrontendCaps)(QApt::DebconfCap);
     m_backend->setFrontendCaps(caps);
     if (!m_backend->init())
         initError();
