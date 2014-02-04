@@ -130,6 +130,12 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
         return;
     }
 
+    if (mapReply.value().isEmpty()) {
+        QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
+        ui->driverOptionsVLayout->addWidget(new QLabel(label, this));
+        return;
+    }
+
     QVariantMapMap dictMap = mapReply.value();
 
     Q_FOREACH(const QString &key,dictMap.keys()) {
