@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Service
-Icon=office-chart-area-focus-peak-node
-Exec=kcmshell4 kcm-drivermanager
+Icon=hwinfo
+Exec=kcmshell4 kcm_driver_manager
 
 X-KDE-Library=kcm_driver_manager
 X-KDE-ServiceTypes=KCModule
