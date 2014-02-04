@@ -4,6 +4,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(kcm_SRCS
     main.cpp
     Module.cpp
+    DriverWidget.cpp
 )
 
 set_source_files_properties(${kcm_SRCS} PROPERTIES INCLUDE drivermanagerdbustypes.h)
@@ -13,7 +14,7 @@ qt4_add_dbus_interface(kcm_SRCS ${drivermanagerobject_xml} drivermanager_interfa
 
 dbus_add_activation_session_service(org.kubuntu.DriverManager.service.in)
 
-kde4_add_ui_files(kcm_SRCS Module.ui)
+kde4_add_ui_files(kcm_SRCS Module.ui DriverWidget.ui)
 kde4_add_plugin(kcm_driver_manager ${kcm_SRCS})
 
 target_link_libraries(kcm_driver_manager

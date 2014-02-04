@@ -32,10 +32,6 @@ namespace Ui {
     class Module;
 }
 
-namespace Solid {
-    class DeviceNotifier;
-}
-
 namespace QApt {
     class Backend;
     class Transaction;
@@ -45,6 +41,8 @@ class QDBusPendingCallWatcher;
 class ComKubuntuDriverManagerInterface;
 class QButtonGroup;
 class QAbstractButton;
+class KPixmapSequenceOverlayPainter;
+class DriverWidget;
 
 class Module : public KCModule
 {
@@ -84,28 +82,24 @@ private:
     Ui::Module *ui;
     ComKubuntuDriverManagerInterface* m_manager;
     bool m_refresh;
-    QList<QButtonGroup*> m_buttonListGroup;
-    Solid::DeviceNotifier *m_notifier;
     QStringList m_ModuleList;
-    QList<QWidget*> m_widgetList;
+    QList<DriverWidget*> m_widgetList;
 
     QApt::Backend *m_backend;
     QApt::Transaction *m_trans;
-    bool m_manualInstalled;
-    bool m_nonFreeInstalled;
+    KPixmapSequenceOverlayPainter *m_overlay;
 
 
 private Q_SLOTS:
     void driverDictFinished(QDBusPendingCallWatcher*);
     void driverMapFinished(QDBusPendingCallWatcher*);
-    void refreshDriverList(bool);
-    void emitDiff(QAbstractButton*);
+    void refreshDriverList();
+    void emitDiff();
     void progressChanged(int);
     void finished(QApt::ExitStatus);
     void handleError(QApt::ErrorCode);
     void cleanup();
     void initError();
-    bool isActive(QString key, QVariantMapMap driverMap);
 
 };
 

@@ -15,6 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="KMessageWidget" name="messageWidget"/>
+   </item>
+   <item>
     <layout class="QVBoxLayout" name="driverOptionsVLayout"/>
    </item>
    <item>
@@ -34,8 +37,7 @@
     </spacer>
    </item>
    <item>
-    <widget class="QProgressBar" name="progressBar">
-    </widget>
+    <widget class="QProgressBar" name="progressBar"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -53,7 +55,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="reloadButton">
        <property name="text">
         <string>Refresh Driver List</string>
        </property>

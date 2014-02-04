@@ -20,6 +20,8 @@
 */
 
 #include "Module.h"
+#include "DriverWidget.h"
+
 #include "ui_Module.h"
 
 #include "drivermanager_interface.h"
@@ -27,12 +29,9 @@
 #include <KAboutData>
 #include <KDebug>
 #include <KPluginFactory>
-#include <KToolInvocation>
-#include <KFontRequester>
-#include <Solid/DeviceNotifier>
-#include <Solid/Device>
 #include <KMessageBox>
 #include <KMessageWidget>
+#include <KPixmapSequenceOverlayPainter>
 
 #include <QLabel>
 #include <QDBusMessage>
@@ -41,7 +40,6 @@
 #include <QDBusReply>
 #include <QRadioButton>
 #include <QButtonGroup>
-#include <QFile>
 #include <QProgressBar>
 
 #include <LibQApt/Backend>
@@ -61,10 +59,8 @@ Module::Module(QWidget *parent, const QVariantList &args)
     , ui(new Ui::Module)
     , m_refresh(false)
     , m_backend(new QApt::Backend)
-    , m_nonFreeInstalled(false)
-    , m_manualInstalled(false)
 {
-    KAboutData *about = new KAboutData("kcm-drivermanager", 0,
+    KAboutData *about = new KAboutData("kcm-driver-manager", 0,
                                        ki18n("((Name))"),
                                        global_s_versionStringFull,
                                        KLocalizedString(),
@@ -75,10 +71,10 @@ Module::Module(QWidget *parent, const QVariantList &args)
 
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
-    m_notifier = Solid::DeviceNotifier::instance();
+
     m_manager = new ComKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
     ui->setupUi(this);
-    connect(ui->pushButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList(bool)));
+    connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
     qDBusRegisterMetaType<QVariantMapMap>();
 
@@ -91,6 +87,9 @@ Module::Module(QWidget *parent, const QVariantList &args)
     if (!m_backend->init())
         initError();
     ui->progressBar->setVisible(false);
+
+    m_overlay = new KPixmapSequenceOverlayPainter(this);
+    m_overlay->setWidget(this);
 }
 
 Module::~Module()
@@ -101,38 +100,33 @@ Module::~Module()
 void Module::load()
 {
     kDebug();
-//     TODO: Implement figuring out which module is currently in use
-//     QFile file("/proc/modules");
-//     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//         kDebug() << "Error opening /proc/modules";
-//         return;
-//     }
-// 
-//     QTextStream stream(&file);
-// 
-//     QString module = stream.readLine();
-//     while(!module.isNull()) {
-//         m_ModuleList.append(module.section(' ', 0, 0));
-//         module = stream.readLine();
-//     }
-// 
-//     kDebug() << m_ModuleList;
 
+    m_overlay->start();
+    ui->messageWidget->setMessageType(KMessageWidget::Information);
+    ui->messageWidget->setText(i18n("Collecting information about your system"));
+    ui->messageWidget->animatedShow();
     QDBusPendingReply<QVariantMapMap> map = m_manager->getDriverDict(m_refresh);
     if (m_refresh) {
         m_refresh = false;
     }
-    QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(map, this);
 
+    QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(map, this);
     connect(async, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(driverDictFinished(QDBusPendingCallWatcher*)));
 }
 
 void Module::driverDictFinished(QDBusPendingCallWatcher* data)
 {
     kDebug();
+    m_overlay->stop();
+    ui->messageWidget->animatedHide();
+    ui->messageWidget->setCloseButtonVisible(true);
+
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
         kWarning() << "DBus data corrupted";
+        ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+        ui->messageWidget->setMessageType(KMessageWidget::Error);
+        ui->messageWidget->animatedShow();
         return;
     }
 
@@ -160,92 +154,32 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
         kWarning() << "DBus data corrupted";
+        ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+        ui->messageWidget->setMessageType(KMessageWidget::Error);
+        ui->messageWidget->animatedShow();
         return;
     }
 
-    QLabel *label = new QLabel(deviceName);
-    ui->driverOptionsVLayout->addWidget(label);
-    // Ugly hack that maintains a list of widgets in the KCM in order to solve 
-    // layouting issues caued by hitting the refresh button
-    m_widgetList.append(label);
-
-    QButtonGroup *radioGroup = new QButtonGroup(this);
-    m_buttonListGroup.append(radioGroup);
-
-    QRadioButton *button;
-
-    QVariantMapMap driverMap = mapReply.value();
-    Q_FOREACH (const QString &key, driverMap.keys()) {
-            QVBoxLayout *internalVLayout = new QVBoxLayout();
-            ui->driverOptionsVLayout->addLayout(internalVLayout);
-            QApt::Package *pkg = m_backend->package(key);
-            QString driverString;
-            if (pkg) {
-                driverString = pkg->shortDescription();
-                button = new QRadioButton(driverString);
-                button->setProperty("driver", key);
-                if (isActive(key, driverMap)) {
-                    button->setChecked(true);
-                }
-                internalVLayout->addWidget(button);
-                radioGroup->addButton(button);
-                m_widgetList.append(button);
-            } else {
-                // *Most* likely a manually installed driver. Check and add a Manual radio button
-                bool isManual = driverMap[key].value("manual_install").toBool();
-                if (isManual) {
-                    m_manualInstalled = true;
-                    button = new QRadioButton(i18nc("Manually installed 3rd party driver", "This device is using a manually-installed driver : (%1)", key));
-                    button->setChecked(true);
-                    internalVLayout->addWidget(button);
-                    radioGroup->addButton(button);
-                    m_widgetList.append(button);
-                }
-            }
-
-        }
-
-     connect(radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitDiff(QAbstractButton*)));
-
+    DriverWidget *widget = new DriverWidget(mapReply.value(), deviceName, m_backend, this);
+    ui->driverOptionsVLayout->insertWidget(0, widget);
+    connect(widget, SIGNAL(changed()), SLOT(emitDiff()));
+    m_widgetList.append(widget);
     data->deleteLater();
-
-    // Don't forget to clean up manual and non free driver status
-    m_manualInstalled = false;
-    m_nonFreeInstalled = false;
 }
 
-bool Module::isActive(QString key, QVariantMapMap driverMap)
-{
-    // Nothing matters if manual driver or non free driver is installed
-    if (m_manualInstalled || m_nonFreeInstalled) {
-        return false;
-    }
 
-    QApt::Package *pkg = m_backend->package(key);
-    bool isFree = driverMap[key].value("free").toBool();
-
-    // Handle non free and free drivers that are installed
-    if (pkg->isInstalled()) {
-        if (!isFree) {
-            m_nonFreeInstalled = true;
-        }
-        return true;
-    }
-
-    return false;
-}
-
-void Module::emitDiff(QAbstractButton*)
+void Module::emitDiff()
 {
     emit changed();
 }
 
 
-void Module::refreshDriverList(bool)
+void Module::refreshDriverList()
 {
     kDebug();
     m_refresh=true;
     qDeleteAll(m_widgetList);
+    m_widgetList.clear();
     load();
 }
 
@@ -254,13 +188,13 @@ void Module::save()
 {
     QApt::PackageList packages;
     QApt::Package *pkg;
-    QString packageStr;
-    Q_FOREACH(const QButtonGroup *group, m_buttonListGroup) {
-        packageStr = group->checkedButton()->property("driver").toString();
-        qDebug() << packageStr;
-        pkg = m_backend->package(packageStr);
+    Q_FOREACH(const DriverWidget* widget, m_widgetList) {
+        const QString pkgStr = widget->getSelectedPackageStr();
+        pkg = m_backend->package(pkgStr);
         if (pkg) {
-            packages.append(pkg);
+            if (!pkg->isInstalled()) {
+                packages.append(pkg);
+            }
         }
     }
 
@@ -270,7 +204,7 @@ void Module::save()
     connect(m_trans, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(handleError(QApt::ErrorCode)));
     m_trans->run();
     ui->progressBar->setVisible(true);
-    ui->pushButton->setEnabled(false);
+    ui->reloadButton->setEnabled(false);
 }
 
 void Module::progressChanged(int progress)
@@ -281,6 +215,7 @@ void Module::progressChanged(int progress)
 void Module::finished(QApt::ExitStatus status)
 {
     cleanup();
+    refreshDriverList();
 }
 
 void Module::handleError(QApt::ErrorCode error)
@@ -363,9 +298,9 @@ void Module::handleError(QApt::ErrorCode error)
             break;
     }
 
-    KMessageWidget *errorWidget = new KMessageWidget(text, this);
-    errorWidget->setMessageType(KMessageWidget::Error);
-    ui->driverOptionsVLayout->insertWidget(0, errorWidget);
+    ui->messageWidget->setText(text);
+    ui->messageWidget->setMessageType(KMessageWidget::Error);
+    ui->messageWidget->animatedShow();
     cleanup();
 }
 
@@ -373,8 +308,7 @@ void Module::cleanup()
 {
     m_backend->reloadCache();
     ui->progressBar->setVisible(false);
-    ui->pushButton->setEnabled(true);
-
+    ui->reloadButton->setEnabled(true);
 }
 
 void Module::initError()
@@ -384,11 +318,10 @@ void Module::initError()
     QString text = i18nc("@label",
                          "The package system could not be initialized, your "
                          "configuration may be broken.");
-    KMessageWidget *errorWidget = new KMessageWidget(text, this);
-    errorWidget->setToolTip(details);
-    ui->driverOptionsVLayout->addWidget(errorWidget);
-    errorWidget->setMessageType(KMessageWidget::Error);
-    errorWidget->show();
+    ui->messageWidget->setText(text);
+    ui->messageWidget->setToolTip(details);
+    ui->messageWidget->setMessageType(KMessageWidget::Error);
+    ui->messageWidget->animatedShow();
 }
 
 void Module::defaults()
