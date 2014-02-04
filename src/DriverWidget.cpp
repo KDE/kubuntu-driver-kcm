@@ -47,14 +47,22 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
 
     Q_FOREACH (const QString &key, map.keys()) {
             QApt::Package *pkg = m_backend->package(key);
-            QString driverString;
+
             if (pkg) {
-                driverString = pkg->shortDescription();
+                QString driverString = pkg->shortDescription();
                 if (map[key]["recommended"].toBool()) {
                     driverString += i18nc("This particular driver is a recommended driver",
                                                          " (Recommended Driver)");
                 }
+
                 button = new QRadioButton(driverString);
+
+                if (map[key]["free"].toBool()) {
+                    button->setToolTip(i18n("Open Source Driver"));
+                } else {
+                    button->setToolTip(i18n("Proprietary Driver"));
+                }
+
                 button->setProperty("driver", key);
                 if (isActive(key, map)) {
                     button->setChecked(true);
