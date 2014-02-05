@@ -42,7 +42,7 @@ namespace DebconfKde {
 }
 
 class QDBusPendingCallWatcher;
-class ComKubuntuDriverManagerInterface;
+class OrgKubuntuDriverManagerInterface;
 class QButtonGroup;
 class QAbstractButton;
 class KPixmapSequenceOverlayPainter;
@@ -84,7 +84,7 @@ public:
 private:
     /// UI
     Ui::Module *ui;
-    ComKubuntuDriverManagerInterface* m_manager;
+    OrgKubuntuDriverManagerInterface* m_manager;
     bool m_refresh;
     QStringList m_ModuleList;
     QList<DriverWidget*> m_widgetList;

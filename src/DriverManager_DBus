@@ -9,7 +9,7 @@ import dbus.mainloop.qt
 from UbuntuDrivers import detect
 from PyQt4.QtCore import QCoreApplication, QTimer
 
-BUS_NAME = "com.kubuntu.DriverManager"
+BUS_NAME = "org.kubuntu.DriverManager"
 
 class DriverManager(dbus.service.Object):
 
@@ -25,7 +25,6 @@ class DriverManager(dbus.service.Object):
     @dbus.service.method(BUS_NAME,
                          in_signature='b', out_signature='a{sa{sv}}')
     def getDriverDict(self, refresh):
-        print("Called")
         if refresh:
             self.driver_map = detect.system_device_drivers()
         return self.driver_map
@@ -47,6 +46,6 @@ if __name__ == '__main__':
     app = QCoreApplication(sys.argv)
     dbus.mainloop.qt.DBusQtMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
-    name = dbus.service.BusName("org.kubuntu.DriverManager", bus)
+    name = dbus.service.BusName(BUS_NAME, bus)
     dbus_manager = DriverManager(session_bus=bus, parent=app)
     sys.exit(app.exec())

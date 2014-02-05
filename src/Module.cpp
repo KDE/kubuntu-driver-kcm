@@ -74,7 +74,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
 
-    m_manager = new ComKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
+    m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
     ui->setupUi(this);
     connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
