@@ -131,17 +131,18 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
 {
     kDebug();
     m_overlay->stop();
-    ui->messageWidget->animatedHide();
+
     ui->messageWidget->setCloseButtonVisible(true);
 
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
-        kWarning() << "DBus data corrupted";
+        kWarning() << "DBus data corrupted" << mapReply.error().message();
         ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
-        ui->messageWidget->animatedShow();
         return;
     }
+
+    ui->messageWidget->animatedHide();
 
     if (mapReply.value().isEmpty()) {
         QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
@@ -172,7 +173,7 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     QString deviceName = data->property("Name").toString();
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
-        kWarning() << "DBus data corrupted";
+        kWarning() << "DBus data corrupted" << mapReply.error().message();
         ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
         ui->messageWidget->animatedShow();
