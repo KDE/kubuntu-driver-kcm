@@ -25,5 +25,5 @@
 #include "Module.h"
 
 K_PLUGIN_FACTORY(KcmDriverFactory,
-                 registerPlugin<Module>("kcm-drivermanager");)
-K_EXPORT_PLUGIN(KcmDriverFactory("kcm-drivermanager"))
+                 registerPlugin<Module>("kcm-driver-manager");)
+K_EXPORT_PLUGIN(KcmDriverFactory("kcm-driver-manager"))

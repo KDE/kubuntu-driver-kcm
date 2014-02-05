@@ -8,7 +8,7 @@ X-KDE-ServiceTypes=KCModule
 X-KDE-System-Settings-Parent-Category=system-administration
 X-KDE-System-Settings-Parent-Category-V2=system-administration
 X-KDE-ParentApp=kcontrol
-X-KDE-PluginKeyword=kcm-drivermanager
+X-KDE-PluginKeyword=kcm-driver-manager
 X-KDE-Keywords=((X-KDE-Keywords))
 Categories=Qt;KDE;X-KDE-settings-system-administration;
 
