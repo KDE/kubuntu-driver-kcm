@@ -9,7 +9,8 @@ X-KDE-System-Settings-Parent-Category=system-administration
 X-KDE-System-Settings-Parent-Category-V2=system-administration
 X-KDE-ParentApp=kcontrol
 X-KDE-PluginKeyword=kcm-driver-manager
-X-KDE-Keywords=((X-KDE-Keywords))
+X-KDE-Keywords=drivers
 Categories=Qt;KDE;X-KDE-settings-system-administration;
 
 Name=Driver Manager for Kubuntu
+Comment=Driver management software
