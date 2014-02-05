@@ -76,6 +76,9 @@ Module::Module(QWidget *parent, const QVariantList &args)
 
     m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
     ui->setupUi(this);
+    //On slower machines it can take upto a minute for the Python script to evaluate hardware
+    //Set a reasonably large timeout so that our DBus calls don't time out
+    m_manager->setTimeout(60000);
     connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
     qDBusRegisterMetaType<QVariantMapMap>();
