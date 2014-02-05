@@ -6,6 +6,7 @@ find_package(KDE4 REQUIRED)
 include(KDE4Defaults)
 
 find_package(QApt)
+find_package(DebconfKDE REQUIRED)
 
 add_definitions(${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
 add_definitions(-std=c++0x)

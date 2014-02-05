@@ -32,6 +32,7 @@
 #include <KMessageBox>
 #include <KMessageWidget>
 #include <KPixmapSequenceOverlayPainter>
+#include <DebconfGui.h>
 
 #include <QLabel>
 #include <QDBusMessage>
@@ -41,6 +42,7 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QProgressBar>
+#include <QUuid>
 
 #include <LibQApt/Backend>
 #include <LibQApt/Transaction>
@@ -89,6 +91,15 @@ Module::Module(QWidget *parent, const QVariantList &args)
 
     m_overlay = new KPixmapSequenceOverlayPainter(this);
     m_overlay->setWidget(this);
+
+    //Debconf handling
+    QString uuid = QUuid::createUuid().toString();
+    uuid.remove('{').remove('}').remove('-');
+    m_pipe = QDir::tempPath() % QLatin1String("/qapt-sock-") % uuid;
+    m_debconfGui = new DebconfKde::DebconfGui(m_pipe, this);
+    m_debconfGui->connect(m_debconfGui, SIGNAL(activated()), this, SLOT(showDebconf()));
+    m_debconfGui->connect(m_debconfGui, SIGNAL(deactivated()), this, SLOT(hideDebconf()));
+    m_debconfGui->hide();
 }
 
 Module::~Module()
@@ -204,6 +215,7 @@ void Module::save()
     }
 
     m_trans = m_backend->installPackages(packages);
+    m_trans->setDebconfPipe(m_pipe);
     connect(m_trans, SIGNAL(progressChanged(int)), SLOT(progressChanged(int)));
     connect(m_trans, SIGNAL(finished(QApt::ExitStatus)), SLOT(finished(QApt::ExitStatus)));
     connect(m_trans, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(handleError(QApt::ErrorCode)));
@@ -331,4 +343,14 @@ void Module::initError()
 
 void Module::defaults()
 {
+}
+
+void Module::showDebconf()
+{
+    m_debconfGui->show();
+}
+
+void Module::hideDebconf()
+{
+    m_debconfGui->hide();
 }

@@ -37,6 +37,10 @@ namespace QApt {
     class Transaction;
 }
 
+namespace DebconfKde {
+    class DebconfGui;
+}
+
 class QDBusPendingCallWatcher;
 class ComKubuntuDriverManagerInterface;
 class QButtonGroup;
@@ -88,6 +92,8 @@ private:
     QApt::Backend *m_backend;
     QApt::Transaction *m_trans;
     KPixmapSequenceOverlayPainter *m_overlay;
+    QString m_pipe;
+    DebconfKde::DebconfGui* m_debconfGui;
 
 
 private Q_SLOTS:
@@ -100,6 +106,8 @@ private Q_SLOTS:
     void handleError(QApt::ErrorCode);
     void cleanup();
     void initError();
+    void showDebconf();
+    void hideDebconf();
 
 };
 

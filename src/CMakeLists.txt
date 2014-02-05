@@ -21,6 +21,7 @@ target_link_libraries(kcm_driver_manager
     ${KDE4_KDEUI_LIBRARY}
     ${KDE4_SOLID_LIBRARY}
     ${QAPT_LIBRARY}
+    ${DEBCONF_KDE_LIB}
 )
 
 install(TARGETS kcm_driver_manager DESTINATION ${PLUGIN_INSTALL_DIR})
