@@ -1,0 +1,30 @@
+Source: kubuntu-driver-manager
+Section: kde
+Priority: optional
+Maintainer: Rohan Garg <rohangarg@kubuntu.org>
+Build-Depends: debhelper (>= 9.0.0), cmake,
+ pkg-kde-tools,
+ kdelibs5-dev,
+ libqapt-dev,
+ libqt4-dev,
+ libdebconf-kde-dev
+Standards-Version: 3.9.5
+Homepage: http://quickgit.kde.org/?p=scratch/garg/kcm-driver-manager.git
+X-Ubuntu-Use-Langpack: yes
+
+Package: kubuntu-driver-manager
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ubuntu-drivers-common, python3
+Description: Driver Manager for Kubuntu
+ Driver manager for Kubuntu that uses the ubuntu-drivers-common API
+
+Package: kubuntu-driver-manager-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, kubuntu-driver-manager (= ${binary:Version})
+Description: Driver Manager for Kubuntu -- debug symbols
+ Driver manager for Kubuntu that uses the ubuntu-drivers-common API
+ .
+ This package contains debuging symbols for the kubuntu-driver-manager package
+

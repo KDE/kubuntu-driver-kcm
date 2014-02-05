@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+version := $(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
+
+%:
+	dh $@ --with kde
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DVERSION_STRING_FULL=$(version)
+
+override_dh_strip:
+	dh_strip --dbg-package=kubuntu-driver-manager-dbg
