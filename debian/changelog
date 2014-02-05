@@ -1,5 +1,5 @@
-kubuntu-driver-manager (14.04ubuntu1) UNRELEASED; urgency=low
+kubuntu-driver-manager (14.04ubuntu1) trusty; urgency=low
 
   * Initial release
 
- -- Rohan Garg <rohangarg@kubuntu.org>  Tue, 28 Jan 2014 11:58:30 +0100
+ -- Rohan Garg <rohangarg@kubuntu.org>  Wed, 05 Feb 2014 19:47:40 +0100
