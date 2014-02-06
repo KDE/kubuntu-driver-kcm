@@ -187,12 +187,10 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     data->deleteLater();
 }
 
-
 void Module::emitDiff()
 {
     emit changed();
 }
-
 
 void Module::refreshDriverList()
 {
@@ -202,7 +200,6 @@ void Module::refreshDriverList()
     m_widgetList.clear();
     load();
 }
-
 
 void Module::save()
 {
