@@ -1,5 +1,4 @@
 /*
- * <one line to give the library's name and an idea of what it does.>
  * Copyright 2014  Rohan Garg <rohan16garg@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include "DriverWidget.h"
