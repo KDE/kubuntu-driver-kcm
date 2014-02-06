@@ -1,19 +1,18 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
 "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/DriverManager">
-  <interface name="org.kubuntu.DriverManager">
-    <method name="keepAlive">
-    </method>
-    <method name="getDriverDict">
-      <arg direction="in"  type="b" name="refresh" />
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMapMap"/>
-      <arg direction="out" type="a{sa{sv}}" />
-    </method>
-    <method name="getDriverMapForDevice">
-      <arg direction="in"  type="s" name="device" />
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMapMap"/>
-      <arg direction="out" type="a{sa{sv}}" />
-    </method>
-  </interface>
+    <interface name="org.kubuntu.DriverManager">
+        <signal name="dataReady">
+            <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMapMap"/>
+            <arg type="a{sa{sv}}" name="driver_map" />
+        </signal>
+        <method name="getDriverDict">
+            <arg direction="in"  type="b" name="refresh" />
+        </method>
+        <method name="getDriverMapForDevice">
+            <arg direction="in"  type="s" name="device" />
+            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMapMap"/>
+            <arg direction="out" type="a{sa{sv}}" />
+        </method>
+    </interface>
 </node>
-

@@ -99,12 +99,12 @@ private:
 
 
 private Q_SLOTS:
-    void driverDictFinished(QDBusPendingCallWatcher*);
+    void driverDictFinished(QVariantMapMap);
     void driverMapFinished(QDBusPendingCallWatcher*);
     void refreshDriverList();
     void emitDiff();
     void progressChanged(int);
-    void finished(QApt::ExitStatus);
+    void finished();
     void handleError(QApt::ErrorCode);
     void cleanup();
     void initError();

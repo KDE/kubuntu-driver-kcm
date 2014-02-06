@@ -23,11 +23,16 @@ class DriverManager(dbus.service.Object):
         self.__timer.start(30000)
 
     @dbus.service.method(BUS_NAME,
-                         in_signature='b', out_signature='a{sa{sv}}')
+                         in_signature='b', out_signature='')
     def getDriverDict(self, refresh):
         if refresh:
             self.driver_map = detect.system_device_drivers()
-        return self.driver_map
+        self.dataReady(self.driver_map)
+
+    @dbus.service.signal(dbus_interface=BUS_NAME,
+                         signature='a{sa{sv}}')
+    def dataReady(self, driver_map):
+        return driver_map
 
     @dbus.service.method(BUS_NAME,
                          in_signature='', out_signature='')

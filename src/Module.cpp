@@ -76,9 +76,6 @@ Module::Module(QWidget *parent, const QVariantList &args)
 
     m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
     ui->setupUi(this);
-    //On slower machines it can take upto a minute for the Python script to evaluate hardware
-    //Set a reasonably large timeout so that our DBus calls don't time out
-    m_manager->setTimeout(60000);
     connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
     qDBusRegisterMetaType<QVariantMapMap>();
@@ -124,40 +121,26 @@ void Module::load()
         m_refresh = false;
     }
 
-    QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(map, this);
-    connect(async, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(driverDictFinished(QDBusPendingCallWatcher*)));
+    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)));
 }
 
-void Module::driverDictFinished(QDBusPendingCallWatcher* data)
+void Module::driverDictFinished(QVariantMapMap data)
 {
-    kDebug();
     m_overlay->stop();
 
     ui->messageWidget->setCloseButtonVisible(true);
 
-    QDBusPendingReply<QVariantMapMap> mapReply = *data;
-    if (mapReply.isError()) {
-        kWarning() << "DBus data corrupted" << mapReply.error().message();
-        ui->messageWidget->setText(i18nc("The backend replied with a error",
-                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
-        ui->messageWidget->setMessageType(KMessageWidget::Error);
-        return;
-    }
-
     ui->messageWidget->animatedHide();
 
-    if (mapReply.value().isEmpty()) {
-        QString label = i18nc("The backend determined that no proprietary drivers are required",
-                              "<title>Your computer requires no proprietary drivers</title>");
+    if (data.isEmpty()) {
+        QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
         m_label = new QLabel(label, this);
         ui->driverOptionsVLayout->addWidget(m_label);
         return;
     }
 
-    QVariantMapMap dictMap = mapReply.value();
-
-    Q_FOREACH(const QString &key,dictMap.keys()) {
-        QVariantMap mapValue = dictMap[key];
+    Q_FOREACH(const QString &key,data.keys()) {
+        QVariantMap mapValue = data[key];
         //Device Name extraction from Map
         QVariant vendor = mapValue.value("vendor");
         QVariant model = mapValue.value("model");
@@ -168,7 +151,6 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
         async->setProperty("Name", label);
         connect(async, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(driverMapFinished(QDBusPendingCallWatcher*)));
     }
-    data->deleteLater();
 }
 
 void Module::driverMapFinished(QDBusPendingCallWatcher* data)
@@ -226,7 +208,7 @@ void Module::save()
     m_trans = m_backend->installPackages(packages);
     m_trans->setDebconfPipe(m_pipe);
     connect(m_trans, SIGNAL(progressChanged(int)), SLOT(progressChanged(int)));
-    connect(m_trans, SIGNAL(finished(QApt::ExitStatus)), SLOT(finished(QApt::ExitStatus)));
+    connect(m_trans, SIGNAL(finished(QApt::ExitStatus)), SLOT(finished()));
     connect(m_trans, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(handleError(QApt::ErrorCode)));
     m_trans->run();
     ui->progressBar->setVisible(true);
@@ -238,7 +220,7 @@ void Module::progressChanged(int progress)
     ui->progressBar->setValue(progress);
 }
 
-void Module::finished(QApt::ExitStatus status)
+void Module::finished()
 {
     cleanup();
     refreshDriverList();
