@@ -63,7 +63,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     , m_backend(new QApt::Backend)
 {
     KAboutData *about = new KAboutData("kcm-driver-manager", 0,
-                                       ki18n("((Name))"),
+                                       ki18n("Driver Manager"),
                                        global_s_versionStringFull,
                                        KLocalizedString(),
                                        KAboutData::License_GPL_V3,
@@ -116,7 +116,8 @@ void Module::load()
 
     m_overlay->start();
     ui->messageWidget->setMessageType(KMessageWidget::Information);
-    ui->messageWidget->setText(i18n("Collecting information about your system"));
+    ui->messageWidget->setText(i18nc("The backend is trying to figure out what drivers are suitable for the users system",
+                                     "Collecting information about your system"));
     ui->messageWidget->animatedShow();
     QDBusPendingReply<QVariantMapMap> map = m_manager->getDriverDict(m_refresh);
     if (m_refresh) {
@@ -137,7 +138,8 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
         kWarning() << "DBus data corrupted" << mapReply.error().message();
-        ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+        ui->messageWidget->setText(i18nc("The backend replied with a error",
+                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
         return;
     }
@@ -145,8 +147,10 @@ void Module::driverDictFinished(QDBusPendingCallWatcher* data)
     ui->messageWidget->animatedHide();
 
     if (mapReply.value().isEmpty()) {
-        QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
-        ui->driverOptionsVLayout->addWidget(new QLabel(label, this));
+        QString label = i18nc("The backend determined that no proprietary drivers are required",
+                              "<title>Your computer requires no proprietary drivers</title>");
+        m_label = new QLabel(label, this);
+        ui->driverOptionsVLayout->addWidget(m_label);
         return;
     }
 
@@ -174,7 +178,8 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
         kWarning() << "DBus data corrupted" << mapReply.error().message();
-        ui->messageWidget->setText(i18n("Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+        ui->messageWidget->setText(i18nc("The backend replied with a error",
+                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
         ui->messageWidget->animatedShow();
         return;
@@ -198,6 +203,9 @@ void Module::refreshDriverList()
     m_refresh=true;
     qDeleteAll(m_widgetList);
     m_widgetList.clear();
+    if (m_label) {
+        delete m_label;
+    }
     load();
 }
 

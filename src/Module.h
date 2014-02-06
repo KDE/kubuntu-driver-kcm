@@ -47,6 +47,7 @@ class QButtonGroup;
 class QAbstractButton;
 class KPixmapSequenceOverlayPainter;
 class DriverWidget;
+class QLabel;
 
 class Module : public KCModule
 {
@@ -93,6 +94,7 @@ private:
     QApt::Transaction *m_trans;
     KPixmapSequenceOverlayPainter *m_overlay;
     QString m_pipe;
+    QLabel *m_label;
     DebconfKde::DebconfGui* m_debconfGui;
 
 

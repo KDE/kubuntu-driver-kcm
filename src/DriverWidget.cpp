@@ -59,9 +59,11 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
             button = new QRadioButton(driverString);
 
             if (map[key]["free"].toBool()) {
-                button->setToolTip(i18n("Open Source Driver"));
+                button->setToolTip(i18nc("The driver is under a open source license",
+                                         "Open Source Driver"));
             } else {
-                button->setToolTip(i18n("Proprietary Driver"));
+                button->setToolTip(i18nc("The driver is under a proprietary license",
+                                         "Proprietary Driver"));
             }
 
             button->setProperty("driver", key);
