@@ -44,49 +44,49 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
     m_radioGroup = new QButtonGroup();
 
     Q_FOREACH (const QString &key, map.keys()) {
-            QApt::Package *pkg = m_backend->package(key);
+        QApt::Package *pkg = m_backend->package(key);
 
-            if (pkg) {
-                QString driverString = i18nc("%1 is description and %2 is package name",
-                                             "Using %1 from %2",
-                                             pkg->shortDescription(),
-                                             pkg->name());
-                if (map[key]["recommended"].toBool()) {
-                    driverString += i18nc("This particular driver is a recommended driver",
-                                                         " (Recommended Driver)");
-                }
+        if (pkg) {
+            QString driverString = i18nc("%1 is description and %2 is package name",
+                                            "Using %1 from %2",
+                                            pkg->shortDescription(),
+                                            pkg->name());
+            if (map[key]["recommended"].toBool()) {
+                driverString += i18nc("This particular driver is a recommended driver",
+                                                        " (Recommended Driver)");
+            }
 
-                button = new QRadioButton(driverString);
+            button = new QRadioButton(driverString);
 
-                if (map[key]["free"].toBool()) {
-                    button->setToolTip(i18n("Open Source Driver"));
-                } else {
-                    button->setToolTip(i18n("Proprietary Driver"));
-                }
+            if (map[key]["free"].toBool()) {
+                button->setToolTip(i18n("Open Source Driver"));
+            } else {
+                button->setToolTip(i18n("Proprietary Driver"));
+            }
 
-                button->setProperty("driver", key);
-                if (isActive(key, map)) {
-                    button->setChecked(true);
-                }
+            button->setProperty("driver", key);
+            if (isActive(key, map)) {
+                button->setChecked(true);
+            }
+            ui->verticalLayout->addWidget(button);
+            m_radioGroup->addButton(button);
+            m_widgetList.append(button);
+        } else {
+            // *Most* likely a manually installed driver. Check and add a Manual radio button
+            bool isManual = map[key].value("manual_install").toBool();
+            if (isManual) {
+                m_manualInstalled = true;
+                button = new QRadioButton(i18nc("Manually installed 3rd party driver", "This device is using a manually-installed driver : (%1)", key));
+                button->setChecked(true);
                 ui->verticalLayout->addWidget(button);
                 m_radioGroup->addButton(button);
                 m_widgetList.append(button);
-            } else {
-                // *Most* likely a manually installed driver. Check and add a Manual radio button
-                bool isManual = map[key].value("manual_install").toBool();
-                if (isManual) {
-                    m_manualInstalled = true;
-                    button = new QRadioButton(i18nc("Manually installed 3rd party driver", "This device is using a manually-installed driver : (%1)", key));
-                    button->setChecked(true);
-                    ui->verticalLayout->addWidget(button);
-                    m_radioGroup->addButton(button);
-                    m_widgetList.append(button);
-                }
             }
-
         }
 
-        connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitChanged(QAbstractButton*)));
+    }
+
+    connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitChanged(QAbstractButton*)));
 }
 
 DriverWidget::~DriverWidget()
