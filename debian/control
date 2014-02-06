@@ -16,15 +16,21 @@ Package: kubuntu-driver-manager
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ubuntu-drivers-common, python3
 Description: Driver Manager for Kubuntu
- Driver manager for Kubuntu that uses the ubuntu-drivers-common API
-
+ Driver Manager provides a user interface for configuring third-party drivers,
+ such as the Nvidia and ATI fglrx X.org and various Wireless LAN
+ kernel modules.
+ .
+ This package contains the KDE frontend.
+ 
 Package: kubuntu-driver-manager-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends: ${misc:Depends}, kubuntu-driver-manager (= ${binary:Version})
 Description: Driver Manager for Kubuntu -- debug symbols
- Driver manager for Kubuntu that uses the ubuntu-drivers-common API
+ Driver Manager provides a user interface for configuring third-party drivers,
+ such as the Nvidia and ATI fglrx X.org and various Wireless LAN
+ kernel modules.
  .
- This package contains debuging symbols for the kubuntu-driver-manager package
+ This package contains debugging symbols for the KDE frontend.
 
