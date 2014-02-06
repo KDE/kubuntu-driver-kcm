@@ -22,7 +22,7 @@ Package: kubuntu-driver-manager-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Depends: ${shlibs:Depends}, ${misc:Depends}, kubuntu-driver-manager (= ${binary:Version})
+Depends: ${misc:Depends}, kubuntu-driver-manager (= ${binary:Version})
 Description: Driver Manager for Kubuntu -- debug symbols
  Driver manager for Kubuntu that uses the ubuntu-drivers-common API
  .
