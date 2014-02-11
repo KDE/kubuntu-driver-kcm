@@ -92,6 +92,11 @@ Module::Module(QWidget *parent, const QVariantList &args)
     m_overlay = new KPixmapSequenceOverlayPainter(this);
     m_overlay->setWidget(this);
 
+    QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
+    m_label = new QLabel(label, this);
+    m_label->hide();
+    ui->driverOptionsVLayout->addWidget(m_label);
+
     //Debconf handling
     QString uuid = QUuid::createUuid().toString();
     uuid.remove('{').remove('}').remove('-');
@@ -116,7 +121,7 @@ void Module::load()
     ui->messageWidget->setText(i18nc("The backend is trying to figure out what drivers are suitable for the users system",
                                      "Collecting information about your system"));
     ui->messageWidget->animatedShow();
-    QDBusPendingReply<QVariantMapMap> map = m_manager->getDriverDict(m_refresh);
+    m_manager->getDriverDict(m_refresh);
     if (m_refresh) {
         m_refresh = false;
     }
@@ -133,9 +138,7 @@ void Module::driverDictFinished(QVariantMapMap data)
     ui->messageWidget->animatedHide();
 
     if (data.isEmpty()) {
-        QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
-        m_label = new QLabel(label, this);
-        ui->driverOptionsVLayout->addWidget(m_label);
+        m_label->show();
         return;
     }
 
@@ -156,6 +159,7 @@ void Module::driverDictFinished(QVariantMapMap data)
 void Module::driverMapFinished(QDBusPendingCallWatcher* data)
 {
     kDebug();
+
     QString deviceName = data->property("Name").toString();
     QDBusPendingReply<QVariantMapMap> mapReply = *data;
     if (mapReply.isError()) {
@@ -185,9 +189,7 @@ void Module::refreshDriverList()
     m_refresh=true;
     qDeleteAll(m_widgetList);
     m_widgetList.clear();
-    if (m_label) {
-        delete m_label;
-    }
+    m_label->hide();
     load();
 }
 
