@@ -132,6 +132,7 @@ void Module::load()
 void Module::driverDictFinished(QVariantMapMap data)
 {
     m_overlay->stop();
+    ui->reloadButton->setEnabled(true);
 
     ui->messageWidget->setCloseButtonVisible(true);
 
@@ -186,6 +187,7 @@ void Module::emitDiff()
 void Module::refreshDriverList()
 {
     kDebug();
+    ui->reloadButton->setEnabled(false);
     m_refresh=true;
     qDeleteAll(m_widgetList);
     m_widgetList.clear();
