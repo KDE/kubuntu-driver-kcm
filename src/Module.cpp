@@ -126,7 +126,7 @@ void Module::load()
         m_refresh = false;
     }
 
-    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)));
+    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)), Qt::UniqueConnection);
 }
 
 void Module::driverDictFinished(QVariantMapMap data)
