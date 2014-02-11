@@ -313,6 +313,7 @@ void Module::handleError(QApt::ErrorCode error)
     ui->messageWidget->setText(text);
     ui->messageWidget->setMessageType(KMessageWidget::Error);
     ui->messageWidget->animatedShow();
+    emit changed(true);
     cleanup();
 }
 
