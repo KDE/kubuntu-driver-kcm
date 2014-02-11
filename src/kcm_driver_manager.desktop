@@ -12,5 +12,5 @@ X-KDE-PluginKeyword=kcm-driver-manager
 X-KDE-Keywords=drivers
 Categories=Qt;KDE;X-KDE-settings-system-administration;
 
-Name=Driver Manager for Kubuntu
+Name=Driver Manager
 Comment=Driver management software
