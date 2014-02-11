@@ -88,7 +88,9 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
 
     }
 
-    connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(emitChanged(QAbstractButton*)));
+    m_indexSelected = m_radioGroup->checkedId();
+    m_defaultSelection = m_indexSelected;
+    connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(hasChanged(QAbstractButton*)));
 }
 
 DriverWidget::~DriverWidget()
@@ -129,7 +131,23 @@ bool DriverWidget::isActive(QString key, QVariantMapMap map)
     return false;
 }
 
-void DriverWidget::emitChanged(QAbstractButton*)
+void DriverWidget::hasChanged(QAbstractButton*)
 {
-    emit changed();
+    int id = m_radioGroup->checkedId();
+    if( id != m_indexSelected) {
+        m_indexSelected = m_radioGroup->checkedId();
+        emit changed(true);
+    }
+
+    if ( id == m_defaultSelection ) {
+        emit changed(false);
+    }
+}
+
+void DriverWidget::setDefaultSelection()
+{
+    QAbstractButton *defaultButton = m_radioGroup->button(m_defaultSelection);
+    if (defaultButton) {
+        defaultButton->setChecked(true);
+    }
 }

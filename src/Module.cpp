@@ -174,14 +174,14 @@ void Module::driverMapFinished(QDBusPendingCallWatcher* data)
 
     DriverWidget *widget = new DriverWidget(mapReply.value(), deviceName, m_backend, this);
     ui->driverOptionsVLayout->insertWidget(0, widget);
-    connect(widget, SIGNAL(changed()), SLOT(emitDiff()));
+    connect(widget, SIGNAL(changed(bool)), SLOT(emitDiff(bool)));
     m_widgetList.append(widget);
     data->deleteLater();
 }
 
-void Module::emitDiff()
+void Module::emitDiff(bool hasChanged)
 {
-    emit changed();
+    emit changed(hasChanged);
 }
 
 void Module::refreshDriverList()
@@ -338,6 +338,9 @@ void Module::initError()
 
 void Module::defaults()
 {
+    Q_FOREACH(DriverWidget *widget, m_widgetList) {
+        widget->setDefaultSelection();
+    }
 }
 
 void Module::showDebconf()

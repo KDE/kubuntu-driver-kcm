@@ -102,7 +102,7 @@ private Q_SLOTS:
     void driverDictFinished(QVariantMapMap);
     void driverMapFinished(QDBusPendingCallWatcher*);
     void refreshDriverList();
-    void emitDiff();
+    void emitDiff(bool);
     void progressChanged(int);
     void finished();
     void handleError(QApt::ErrorCode);

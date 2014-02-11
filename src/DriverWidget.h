@@ -43,9 +43,10 @@ public:
     DriverWidget(const QVariantMapMap& map, const QString& label, QApt::Backend* backend, QWidget* parent);
     ~DriverWidget();
     QString getSelectedPackageStr() const;
+    void setDefaultSelection();
 
 Q_SIGNALS:
-    void changed();
+    void changed(bool);
 
 private:
     //UI
@@ -56,9 +57,11 @@ private:
     QApt::Backend* m_backend;
     QButtonGroup* m_radioGroup;
     bool isActive(QString key, QVariantMapMap map);
+    int m_indexSelected;
+    int m_defaultSelection;
 
 private Q_SLOTS:
-    void emitChanged(QAbstractButton*);
+    void hasChanged(QAbstractButton*);
 };
 
 #endif // DRIVERWIDGET_H
