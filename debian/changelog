@@ -1,3 +1,14 @@
+kubuntu-driver-manager (14.04ubuntu2) trusty; urgency=medium
+
+  * New upstream snapshot
+    - Change name (LP: #1278814)
+    - Fix crash when hitting refresh button (LP: #1278816)
+    - Implement state tracking (LP: #1278827)
+    - Make sure apply button is enabled even after transaction
+      returns a error (LP: #1278826)
+
+ -- Rohan Garg <rohangarg@kubuntu.org>  Wed, 12 Feb 2014 15:18:59 +0100
+
 kubuntu-driver-manager (14.04ubuntu1) trusty; urgency=low
 
   * Initial release
