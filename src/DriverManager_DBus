@@ -20,14 +20,17 @@ class DriverManager(dbus.service.Object):
         dbus.service.Object.__init__(self, session_bus,'/DriverManager')
         self.__timer = QTimer(parent)
         self.__timer.timeout.connect(self.quit)
-        self.__timer.start(30000)
+        self.__timer.setInterval(30000)
+        self.__timer.start()
 
     @dbus.service.method(BUS_NAME,
                          in_signature='b', out_signature='')
     def getDriverDict(self, refresh):
+        self.__timer.stop()
         if refresh:
             self.driver_map = detect.system_device_drivers()
         self.dataReady(self.driver_map)
+        self.__timer.start()
 
     @dbus.service.signal(dbus_interface=BUS_NAME,
                          signature='a{sa{sv}}')
@@ -35,14 +38,11 @@ class DriverManager(dbus.service.Object):
         return driver_map
 
     @dbus.service.method(BUS_NAME,
-                         in_signature='', out_signature='')
-    def keepAlive(self):
-        self.__timer.start()
-
-    @dbus.service.method(BUS_NAME,
                          in_signature='s', out_signature='a{sa{sv}}')
     def getDriverMapForDevice(self, device):
+        self.__timer.stop()
         return self.driver_map[device]["drivers"]
+        self.__timer.start()
 
     def quit(self):
         sys.exit()

@@ -357,7 +357,7 @@ void Module::hideDebconf()
 void Module::xapianUpdateFinished()
 {
     if(!m_backend->openXapianIndex()) {
-        ui->messageWidget->setText(i18nc("The xapian cache couldn't be opened", "The package search cache couldn't be opened");
+        ui->messageWidget->setText(i18nc("The xapian cache couldn't be opened", "The package search cache couldn't be opened"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
         return;
     }

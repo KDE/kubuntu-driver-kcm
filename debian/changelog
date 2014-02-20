@@ -5,6 +5,9 @@ kubuntu-driver-manager (14.04ubuntu3) UNRELEASED; urgency=medium
       + Better strings LP: #1282095
       + Update xapian cache before opening LP: #1282087
       + Fix memory leak
+      + Drop useless keepAlive function LP: #1282092
+      + Timer should start/stop before each function so that the script
+        doesn't quite mid way LP: #1282090
 
  -- Rohan Garg <rohangarg@kubuntu.org>  Thu, 20 Feb 2014 18:34:36 +0100
 
