@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2013 Rohan Garg <rohangarg@kubuntu.org>
+    Copyright (C) 2013 Rohan Garg <rohan@kde.org>
     Copyright (C) 2013 Harald Sitter <apachelogger@kubuntu.org>
 
     This program is free software; you can redistribute it and/or
@@ -96,7 +96,7 @@ private:
     QString m_pipe;
     QLabel *m_label;
     DebconfKde::DebconfGui* m_debconfGui;
-
+    void initError();
 
 private Q_SLOTS:
     void driverDictFinished(QVariantMapMap);
@@ -107,9 +107,9 @@ private Q_SLOTS:
     void finished();
     void handleError(QApt::ErrorCode);
     void cleanup();
-    void initError();
     void showDebconf();
     void hideDebconf();
+    void xapianUpdateFinished();
 
 };
 

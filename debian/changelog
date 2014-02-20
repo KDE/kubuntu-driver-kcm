@@ -1,3 +1,13 @@
+kubuntu-driver-manager (14.04ubuntu3) UNRELEASED; urgency=medium
+
+  * New upstream snapshot
+    - Bug fixing around
+      + Better strings LP: #1282095
+      + Update xapian cache before opening LP: #1282087
+      + Fix memory leak
+
+ -- Rohan Garg <rohangarg@kubuntu.org>  Thu, 20 Feb 2014 18:34:36 +0100
+
 kubuntu-driver-manager (14.04ubuntu2) trusty; urgency=medium
 
   * New upstream snapshot

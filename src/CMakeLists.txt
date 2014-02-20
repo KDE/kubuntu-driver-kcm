@@ -27,3 +27,4 @@ target_link_libraries(kcm_driver_manager
 install(TARGETS kcm_driver_manager DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES kcm_driver_manager.desktop DESTINATION ${SERVICES_INSTALL_DIR})
 install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/DriverManager_DBus DESTINATION ${KDE4_LIBEXEC_INSTALL_DIR})
+

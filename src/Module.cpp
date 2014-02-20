@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2013 Rohan Garg <rohangarg@kubuntu.org>
+    Copyright (C) 2013 Rohan Garg <rohan@kde.org>
     Copyright (C) 2013 Harald Sitter <apachelogger@kubuntu.org>
 
     This program is free software; you can redistribute it and/or
@@ -74,7 +74,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
 
-    m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus());
+    m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus(), this);
     ui->setupUi(this);
     connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
@@ -87,6 +87,13 @@ Module::Module(QWidget *parent, const QVariantList &args)
     m_backend->setFrontendCaps(caps);
     if (!m_backend->init())
         initError();
+
+    if (m_backend->xapianIndexNeedsUpdate()) {
+        m_backend->updateXapianIndex();
+        connect(m_backend, SIGNAL(xapianUpdateFinished()), SLOT(xapianUpdateFinished()));
+    } else {
+        xapianUpdateFinished();
+    }
     ui->progressBar->setVisible(false);
 
     m_overlay = new KPixmapSequenceOverlayPainter(this);
@@ -121,12 +128,6 @@ void Module::load()
     ui->messageWidget->setText(i18nc("The backend is trying to figure out what drivers are suitable for the users system",
                                      "Collecting information about your system"));
     ui->messageWidget->animatedShow();
-    m_manager->getDriverDict(m_refresh);
-    if (m_refresh) {
-        m_refresh = false;
-    }
-
-    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)), Qt::UniqueConnection);
 }
 
 void Module::driverDictFinished(QVariantMapMap data)
@@ -198,10 +199,9 @@ void Module::refreshDriverList()
 void Module::save()
 {
     QApt::PackageList packages;
-    QApt::Package *pkg;
     Q_FOREACH(const DriverWidget* widget, m_widgetList) {
         const QString pkgStr = widget->getSelectedPackageStr();
-        pkg = m_backend->package(pkgStr);
+        QApt::Package *pkg = m_backend->package(pkgStr);
         if (pkg) {
             if (!pkg->isInstalled()) {
                 packages.append(pkg);
@@ -353,3 +353,19 @@ void Module::hideDebconf()
 {
     m_debconfGui->hide();
 }
+
+void Module::xapianUpdateFinished()
+{
+    if(!m_backend->openXapianIndex()) {
+        ui->messageWidget->setText(i18nc("The xapian cache couldn't be opened", "The package search cache couldn't be opened");
+        ui->messageWidget->setMessageType(KMessageWidget::Error);
+        return;
+    }
+    m_manager->getDriverDict(m_refresh);
+    if (m_refresh) {
+        m_refresh = false;
+    }
+
+    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)), Qt::UniqueConnection);
+}
+
