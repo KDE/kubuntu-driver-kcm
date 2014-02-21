@@ -40,9 +40,7 @@ class DriverManager(dbus.service.Object):
     @dbus.service.method(BUS_NAME,
                          in_signature='s', out_signature='a{sa{sv}}')
     def getDriverMapForDevice(self, device):
-        self.__timer.stop()
         return self.driver_map[device]["drivers"]
-        self.__timer.start()
 
     def quit(self):
         sys.exit()
@@ -54,3 +52,4 @@ if __name__ == '__main__':
     name = dbus.service.BusName(BUS_NAME, bus)
     dbus_manager = DriverManager(session_bus=bus, parent=app)
     sys.exit(app.exec())
+
