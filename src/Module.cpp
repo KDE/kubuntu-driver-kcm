@@ -144,7 +144,10 @@ void Module::driverDictFinished(QVariantMapMap data)
         return;
     }
 
-    Q_FOREACH(const QString &key,data.keys()) {
+    KConfig driver_manager("kcmdrivermanagerrc");
+    KConfigGroup pciGroup( &driver_manager, "PCI" );
+
+    Q_FOREACH(const QString &key, data.keys()) {
         QVariantMap mapValue = data[key];
         //Device Name extraction from Map
         QVariant vendor = mapValue.value("vendor");
@@ -155,6 +158,7 @@ void Module::driverDictFinished(QVariantMapMap data)
         QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(driverForDeviceMap, this);
         async->setProperty("Name", label);
         connect(async, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(driverMapFinished(QDBusPendingCallWatcher*)));
+        pciGroup.writeEntry(key, "true");
     }
 }
 
