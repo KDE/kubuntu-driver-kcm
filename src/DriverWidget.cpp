@@ -120,8 +120,8 @@ QString DriverWidget::getSelectedPackageStr() const
 bool DriverWidget::isActive(const Driver &driver, const QApt::Package *package)
 {
     // Nothing matters if manual driver or non free driver is installed
-#warning why is m_nonFreeInstalled cached at all, this function only ought to be called once
-    if (driver.manualInstall || m_nonFreeInstalled) {
+#warning why are these cached at all
+    if (m_manualInstalled || m_nonFreeInstalled) {
         return false;
     }
 
