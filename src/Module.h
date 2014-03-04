@@ -69,17 +69,17 @@ public:
     /**
      * Overloading the KCModule load() function.
      */
-    void load();
+    void load() final override;
 
     /**
      * Overloading the KCModule save() function.
      */
-    void save();
+    void save() final override;
 
     /**
      * Overloading the KCModule defaults() function.
      */
-    void defaults();
+    void defaults() final override;
 
 private:
     /// UI
