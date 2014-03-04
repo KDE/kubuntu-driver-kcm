@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2013 Rohan Garg <rohan@kde.org>
-    Copyright (C) 2013 Harald Sitter <apachelogger@kubuntu.org>
+    Copyright (C) 2013-2014 Harald Sitter <apachelogger@kubuntu.org>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -81,12 +81,10 @@ public:
      */
     void defaults();
 
-
 private:
     /// UI
     Ui::Module *ui;
     OrgKubuntuDriverManagerInterface* m_manager;
-    bool m_refresh;
     QStringList m_ModuleList;
     QList<DriverWidget*> m_widgetList;
 
@@ -99,8 +97,7 @@ private:
     void initError();
 
 private Q_SLOTS:
-    void driverDictFinished(QVariantMapMap);
-    void driverMapFinished(QDBusPendingCallWatcher*);
+    void gotDevices(QDBusPendingCallWatcher *watcher);
     void refreshDriverList();
     void emitDiff(bool);
     void progressChanged(int);
@@ -110,7 +107,6 @@ private Q_SLOTS:
     void showDebconf();
     void hideDebconf();
     void xapianUpdateFinished();
-
 };
 
 #endif // MODULE_H

@@ -1,67 +1,69 @@
 /*
- * Copyright 2014  Rohan Garg <rohan@kde.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License or (at your option) version 3 or any later version
- * accepted by the membership of KDE e.V. (or its successor approved
- * by the membership of KDE e.V.), which shall act as a proxy
- * defined in Section 14 of version 3 of the license.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+    Copyright (C) 2014  Rohan Garg <rohan@kde.org>
+    Copyright (C) 2014 Harald Sitter <apachelogger@kubuntu.org>
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of
+    the License or (at your option) version 3 or any later version
+    accepted by the membership of KDE e.V. (or its successor approved
+    by the membership of KDE e.V.), which shall act as a proxy
+    defined in Section 14 of version 3 of the license.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef DRIVERWIDGET_H
 #define DRIVERWIDGET_H
 
-#include "drivermanagerdbustypes.h"
 #include <QWidget>
 
 namespace Ui {
-    class Form;
+class Form;
 }
 
 namespace QApt {
-    class Backend;
+class Backend;
+class Package;
 }
 
 class QButtonGroup;
 class QAbstractButton;
+
+class Device;
+class Driver;
+
 class DriverWidget : public QWidget
 {
     Q_OBJECT
-
-
 public:
-    DriverWidget(const QVariantMapMap& map, const QString& label, QApt::Backend* backend, QWidget* parent);
+    DriverWidget(const Device &device, QApt::Backend *backend, QWidget *parent = 0);
     ~DriverWidget();
     QString getSelectedPackageStr() const;
     void setDefaultSelection();
 
-Q_SIGNALS:
+signals:
     void changed(bool);
 
+private slots:
+    void hasChanged(QAbstractButton *button);
+
 private:
-    //UI
+    bool isActive(const Driver &driver, const QApt::Package *package);
+
     Ui::Form *ui;
-    QList<QWidget*> m_widgetList;
     bool m_manualInstalled;
     bool m_nonFreeInstalled;
-    QApt::Backend* m_backend;
-    QButtonGroup* m_radioGroup;
-    bool isActive(QString key, QVariantMapMap map);
+    QApt::Backend *m_backend;
+    QButtonGroup *m_radioGroup;
     int m_indexSelected;
     int m_defaultSelection;
-
-private Q_SLOTS:
-    void hasChanged(QAbstractButton*);
 };
 
 #endif // DRIVERWIDGET_H

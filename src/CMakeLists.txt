@@ -5,12 +5,13 @@ set(kcm_SRCS
     main.cpp
     Module.cpp
     DriverWidget.cpp
+    Device.cpp
 )
 
 set_source_files_properties(${kcm_SRCS} PROPERTIES INCLUDE drivermanagerdbustypes.h)
 set(drivermanagerobject_xml org.kubuntu.DriverManager.xml)
 set_source_files_properties(${drivermanagerobject_xml} PROPERTIES INCLUDE drivermanagerdbustypes.h)
-qt4_add_dbus_interface(kcm_SRCS ${drivermanagerobject_xml} drivermanager_interface)
+qt4_add_dbus_interface(kcm_SRCS ${drivermanagerobject_xml} DriverMangerInterface)
 
 dbus_add_activation_session_service(org.kubuntu.DriverManager.service.in)
 

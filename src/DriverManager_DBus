@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
-# Copyright (C) 2013 Rohan Garg <rohangarg@kubuntu.org>
+# Copyright (C) 2013 Rohan Garg <rohan@kde.org>
+# Copyright (C) 2014 Harald Sitter <apachelogger@kubuntu.org>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License or (at your option) version 3 or any later version
+# accepted by the membership of KDE e.V. (or its successor approved
+# by the membership of KDE e.V.), which shall act as a proxy
+# defined in Section 14 of version 3 of the license.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 
@@ -19,31 +36,20 @@ class DriverManager(dbus.service.Object):
         self.driver_map=detect.system_device_drivers()
         dbus.service.Object.__init__(self, session_bus,'/DriverManager')
         self.__timer = QTimer(parent)
-        self.__timer.timeout.connect(self.quit)
-        self.__timer.setInterval(30000)
+        self.__timer.timeout.connect(parent.quit)
+	# Auto-terminate after 10 seconds in idle.
+        self.__timer.setInterval(10*1000)
         self.__timer.start()
 
     @dbus.service.method(BUS_NAME,
-                         in_signature='b', out_signature='')
-    def getDriverDict(self, refresh):
-        self.__timer.stop()
-        if refresh:
-            self.driver_map = detect.system_device_drivers()
-        self.dataReady(self.driver_map)
-        self.__timer.start()
-
-    @dbus.service.signal(dbus_interface=BUS_NAME,
-                         signature='a{sa{sv}}')
-    def dataReady(self, driver_map):
-        return driver_map
-
-    @dbus.service.method(BUS_NAME,
-                         in_signature='s', out_signature='a{sa{sv}}')
-    def getDriverMapForDevice(self, device):
-        return self.driver_map[device]["drivers"]
-
-    def quit(self):
-        sys.exit()
+                         in_signature='', out_signature='a{sa{sv}}')
+    def devices(self):
+        print("DriverManager_DBus::devices START")
+        self.__timer.stop();
+        ret = detect.system_device_drivers()
+        self.__timer.start();
+        print("DriverManager_DBus::devices END")
+        return ret;
 
 if __name__ == '__main__':
     app = QCoreApplication(sys.argv)
@@ -52,4 +58,3 @@ if __name__ == '__main__':
     name = dbus.service.BusName(BUS_NAME, bus)
     dbus_manager = DriverManager(session_bus=bus, parent=app)
     sys.exit(app.exec())
-

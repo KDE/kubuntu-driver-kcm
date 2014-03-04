@@ -1,22 +1,23 @@
 /*
- * Copyright 2014  Rohan Garg <rohan@kde.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License or (at your option) version 3 or any later version
- * accepted by the membership of KDE e.V. (or its successor approved
- * by the membership of KDE e.V.), which shall act as a proxy
- * defined in Section 14 of version 3 of the license.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+    Copyright (C) 2014  Rohan Garg <rohan@kde.org>
+    Copyright (C) 2014 Harald Sitter <apachelogger@kubuntu.org>
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of
+    the License or (at your option) version 3 or any later version
+    accepted by the membership of KDE e.V. (or its successor approved
+    by the membership of KDE e.V.), which shall act as a proxy
+    defined in Section 14 of version 3 of the license.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "DriverWidget.h"
 
@@ -30,7 +31,9 @@
 
 #include <LibQApt/Backend>
 
-DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt::Backend* backend, QWidget* parent)
+#include "Device.h"
+
+DriverWidget::DriverWidget(const Device &device, QApt::Backend *backend, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Form)
     , m_manualInstalled(false)
@@ -38,27 +41,34 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
 {
     m_backend = backend;
     ui->setupUi(this);
-    ui->label->setText(label);
+    ui->label->setText(i18nc("%1 is hardware vendor, %2 is hardware model",
+                             "<title>%1 %2</title>",
+                             device.vendor,
+                             device.model));
 
     QRadioButton *button;
-    m_radioGroup = new QButtonGroup();
+    m_radioGroup = new QButtonGroup(this);
 
-    Q_FOREACH (const QString &key, map.keys()) {
-        QApt::Package *pkg = m_backend->package(key);
+    // We want to sort drivers so they have consistent order across starts.
+    QList<Driver> driverList = device.drivers;
+    qSort(driverList);
 
-        if (pkg) {
+    foreach (const Driver &driver, device.drivers) {
+        const QApt::Package *package = m_backend->package(driver.packageName);
+
+        if (package) {
             QString driverString = i18nc("%1 is description and %2 is package name",
                                             "Using %1 from %2",
-                                            pkg->shortDescription(),
-                                            pkg->name());
-            if (map[key]["recommended"].toBool()) {
+                                            package->shortDescription(),
+                                            package->name());
+            if (driver.recommended) {
                 driverString += i18nc("This particular driver is a recommended driver",
                                                         " (Recommended Driver)");
             }
 
-            button = new QRadioButton(driverString);
+            button = new QRadioButton(driverString, this);
 
-            if (map[key]["free"].toBool()) {
+            if (driver.free) {
                 button->setToolTip(i18nc("The driver is under a open source license",
                                          "Open Source Driver"));
             } else {
@@ -66,26 +76,25 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
                                          "Proprietary Driver"));
             }
 
-            button->setProperty("driver", key);
-            if (isActive(key, map)) {
+            button->setProperty("package", driver.packageName);
+            if (isActive(driver, package)) {
                 button->setChecked(true);
             }
             ui->verticalLayout->addWidget(button);
             m_radioGroup->addButton(button);
-            m_widgetList.append(button);
         } else {
             // *Most* likely a manually installed driver. Check and add a Manual radio button
-            bool isManual = map[key].value("manual_install").toBool();
-            if (isManual) {
+            if (driver.manualInstall) {
                 m_manualInstalled = true;
-                button = new QRadioButton(i18nc("Manually installed 3rd party driver", "This device is using a manually-installed driver : (%1)", key));
+                button = new QRadioButton(i18nc("Manually installed 3rd party driver",
+                                                "This device is using a manually-installed driver : (%1)",
+                                                driver.packageName),
+                                          this);
                 button->setChecked(true);
                 ui->verticalLayout->addWidget(button);
                 m_radioGroup->addButton(button);
-                m_widgetList.append(button);
             }
         }
-
     }
 
     m_indexSelected = m_radioGroup->checkedId();
@@ -95,34 +104,30 @@ DriverWidget::DriverWidget(const QVariantMapMap& map, const QString& label, QApt
 
 DriverWidget::~DriverWidget()
 {
-    delete m_radioGroup;
-    qDeleteAll(m_widgetList);
     delete ui;
 }
 
+#warning dat name
 QString DriverWidget::getSelectedPackageStr() const
 {
     if (m_radioGroup->checkedButton()) {
-        return m_radioGroup->checkedButton()->property("driver").toString();
+        return m_radioGroup->checkedButton()->property("package").toString();
     }
 
     return QString();
 }
 
-
-bool DriverWidget::isActive(QString key, QVariantMapMap map)
+bool DriverWidget::isActive(const Driver &driver, const QApt::Package *package)
 {
     // Nothing matters if manual driver or non free driver is installed
-    if (m_manualInstalled || m_nonFreeInstalled) {
+#warning why is m_nonFreeInstalled cached at all, this function only ought to be called once
+    if (driver.manualInstall || m_nonFreeInstalled) {
         return false;
     }
 
-    QApt::Package *pkg = m_backend->package(key);
-    bool isFree = map[key].value("free").toBool();
-
     // Handle non free and free drivers that are installed
-    if (pkg->isInstalled()) {
-        if (!isFree) {
+    if (package->isInstalled()) {
+        if (!driver.free) {
             m_nonFreeInstalled = true;
         }
         return true;
@@ -131,15 +136,19 @@ bool DriverWidget::isActive(QString key, QVariantMapMap map)
     return false;
 }
 
-void DriverWidget::hasChanged(QAbstractButton*)
+void DriverWidget::hasChanged(QAbstractButton *button)
 {
-    int id = m_radioGroup->checkedId();
-    if( id != m_indexSelected) {
+#warning the question is why
+    Q_UNUSED(button);
+
+    const int id = m_radioGroup->checkedId();
+
+    if (id != m_indexSelected) {
         m_indexSelected = m_radioGroup->checkedId();
         emit changed(true);
     }
 
-    if ( id == m_defaultSelection ) {
+    if (id == m_defaultSelection) {
         emit changed(false);
     }
 }

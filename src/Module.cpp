@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2013 Rohan Garg <rohan@kde.org>
-    Copyright (C) 2013 Harald Sitter <apachelogger@kubuntu.org>
+    Copyright (C) 2013-2014 Harald Sitter <apachelogger@kubuntu.org>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -24,8 +24,6 @@
 
 #include "ui_Module.h"
 
-#include "drivermanager_interface.h"
-
 #include <KAboutData>
 #include <KDebug>
 #include <KPluginFactory>
@@ -34,32 +32,21 @@
 #include <KPixmapSequenceOverlayPainter>
 #include <DebconfGui.h>
 
+#include <QDBusMetaType>
 #include <QLabel>
-#include <QDBusMessage>
-#include <QDBusConnection>
-#include <QDBusInterface>
-#include <QDBusReply>
-#include <QRadioButton>
-#include <QButtonGroup>
-#include <QProgressBar>
 #include <QUuid>
 
 #include <LibQApt/Backend>
 #include <LibQApt/Transaction>
 
-#include <qdbusmetatype.h>
-
+#include "DriverMangerInterface.h"
 #include "Version.h"
-
-
-#include <unistd.h>
 
 K_PLUGIN_FACTORY_DECLARATION(KcmDriverFactory);
 
 Module::Module(QWidget *parent, const QVariantList &args)
     : KCModule(KcmDriverFactory::componentData(), parent, args)
     , ui(new Ui::Module)
-    , m_refresh(false)
     , m_backend(new QApt::Backend)
 {
     KAboutData *about = new KAboutData("kcm-driver-manager", 0,
@@ -78,7 +65,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     ui->setupUi(this);
     connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
 
-    qDBusRegisterMetaType<QVariantMapMap>();
+    qDBusRegisterMetaType<DeviceList>();
 
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
@@ -130,60 +117,6 @@ void Module::load()
     ui->messageWidget->animatedShow();
 }
 
-void Module::driverDictFinished(QVariantMapMap data)
-{
-    m_overlay->stop();
-    ui->reloadButton->setEnabled(true);
-
-    ui->messageWidget->setCloseButtonVisible(true);
-
-    ui->messageWidget->animatedHide();
-
-    if (data.isEmpty()) {
-        m_label->show();
-        return;
-    }
-
-    KConfig driver_manager("kcmdrivermanagerrc");
-    KConfigGroup pciGroup( &driver_manager, "PCI" );
-
-    Q_FOREACH(const QString &key, data.keys()) {
-        QVariantMap mapValue = data[key];
-        //Device Name extraction from Map
-        QVariant vendor = mapValue.value("vendor");
-        QVariant model = mapValue.value("model");
-        QString label = i18nc("%1 is hardware vendor, %2 is hardware model", "<title>%1 %2</title>", vendor.toString(), model.toString());
-
-        QDBusPendingReply<QVariantMapMap> driverForDeviceMap = m_manager->getDriverMapForDevice(key);
-        QDBusPendingCallWatcher *async = new QDBusPendingCallWatcher(driverForDeviceMap, this);
-        async->setProperty("Name", label);
-        connect(async, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(driverMapFinished(QDBusPendingCallWatcher*)));
-        pciGroup.writeEntry(key, "true");
-    }
-}
-
-void Module::driverMapFinished(QDBusPendingCallWatcher* data)
-{
-    kDebug();
-
-    QString deviceName = data->property("Name").toString();
-    QDBusPendingReply<QVariantMapMap> mapReply = *data;
-    if (mapReply.isError()) {
-        kWarning() << "DBus data corrupted" << mapReply.error().message();
-        ui->messageWidget->setText(i18nc("The backend replied with a error",
-                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
-        ui->messageWidget->setMessageType(KMessageWidget::Error);
-        ui->messageWidget->animatedShow();
-        return;
-    }
-
-    DriverWidget *widget = new DriverWidget(mapReply.value(), deviceName, m_backend, this);
-    ui->driverOptionsVLayout->insertWidget(0, widget);
-    connect(widget, SIGNAL(changed(bool)), SLOT(emitDiff(bool)));
-    m_widgetList.append(widget);
-    data->deleteLater();
-}
-
 void Module::emitDiff(bool hasChanged)
 {
     emit changed(hasChanged);
@@ -193,7 +126,6 @@ void Module::refreshDriverList()
 {
     kDebug();
     ui->reloadButton->setEnabled(false);
-    m_refresh=true;
     qDeleteAll(m_widgetList);
     m_widgetList.clear();
     m_label->hide();
@@ -341,6 +273,32 @@ void Module::initError()
     ui->messageWidget->animatedShow();
 }
 
+void Module::gotDevices(QDBusPendingCallWatcher *watcher)
+{
+    m_overlay->stop();
+    ui->reloadButton->setEnabled(true);
+    ui->messageWidget->setCloseButtonVisible(true);
+    ui->messageWidget->animatedHide();
+
+    QDBusPendingReply<DeviceList> reply = *watcher;
+    if (reply.isError()) {
+        ui->messageWidget->setText(i18nc("The backend replied with a error",
+                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+        ui->messageWidget->setMessageType(KMessageWidget::Error);
+        ui->messageWidget->animatedShow();
+        return;
+    }
+
+    const DeviceList deviceList = reply.value();
+    foreach (const Device &device, deviceList) {
+        DriverWidget *widget = new DriverWidget(device, m_backend, this);
+        ui->driverOptionsVLayout->insertWidget(0, widget);
+        connect(widget, SIGNAL(changed(bool)), SLOT(emitDiff(bool)));
+        m_widgetList.append(widget);
+    }
+    watcher->deleteLater();
+}
+
 void Module::defaults()
 {
     Q_FOREACH(DriverWidget *widget, m_widgetList) {
@@ -360,16 +318,16 @@ void Module::hideDebconf()
 
 void Module::xapianUpdateFinished()
 {
+    kDebug();
     if(!m_backend->openXapianIndex()) {
         ui->messageWidget->setText(i18nc("The xapian cache couldn't be opened", "The package search cache couldn't be opened"));
         ui->messageWidget->setMessageType(KMessageWidget::Error);
         return;
     }
-    m_manager->getDriverDict(m_refresh);
-    if (m_refresh) {
-        m_refresh = false;
-    }
 
-    connect(m_manager, SIGNAL(dataReady(QVariantMapMap)), SLOT(driverDictFinished(QVariantMapMap)), Qt::UniqueConnection);
+    QDBusPendingReply<DeviceList> reply = m_manager->devices();
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
+    connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
+            this, SLOT(gotDevices(QDBusPendingCallWatcher*)));
 }
 
