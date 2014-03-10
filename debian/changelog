@@ -1,4 +1,4 @@
-kubuntu-driver-manager (14.04ubuntu3) UNRELEASED; urgency=medium
+kubuntu-driver-manager (14.04ubuntu3) trusty; urgency=medium
 
   * New upstream snapshot
     - Bug fixing around
@@ -9,7 +9,7 @@ kubuntu-driver-manager (14.04ubuntu3) UNRELEASED; urgency=medium
       + Timer should start/stop before each function so that the script
         doesn't quite mid way LP: #1282090
 
- -- Rohan Garg <rohangarg@kubuntu.org>  Thu, 20 Feb 2014 18:34:36 +0100
+ -- Rohan Garg <rohangarg@kubuntu.org>  Mon, 10 Mar 2014 14:59:23 +0100
 
 kubuntu-driver-manager (14.04ubuntu2) trusty; urgency=medium
 
