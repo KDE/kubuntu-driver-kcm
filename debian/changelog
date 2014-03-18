@@ -1,3 +1,9 @@
+kubuntu-driver-manager (14.04ubuntu4) UNRELEASED; urgency=medium
+
+  * Depend on python3-qt4 for the auto-quit logic in the helper LP: #1293948
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 18 Mar 2014 13:41:04 +0100
+
 kubuntu-driver-manager (14.04ubuntu3) trusty; urgency=medium
 
   * New upstream snapshot
