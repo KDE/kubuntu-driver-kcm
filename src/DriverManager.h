@@ -34,7 +34,9 @@ public:
     void refresh();
 
     /** Install selected driver packages. */
-    void installDriverPackages(QStringList driverPackageNames, QString debconfPipe = QString());
+    void changeDriverPackages(QStringList driverPackageNamesToInstall,
+                              QStringList driverPackageNamesToRemove,
+                              QString debconfPipe = QString());
 
 signals:
     /**
@@ -54,23 +56,23 @@ signals:
 
     void ready(bool ready);
 
-    void installationProgressChanged(int progress);
+    void changeProgressChanged(int progress);
 
     /** Installation finished successfull. \note Requires refresh */
-    void installationFinished();
+    void changeFinished();
 
     /**
      * Installation failed.
      * \param errorMessage localized error message to show
      * \note Requires refresh
      */
-    void installationFailed(QString errorMessage);
+    void changeFailed(QString errorMessage);
 
 private slots:
     void onDevicesReady(QDBusPendingCallWatcher *watcher);
     void onXapianUpdateFinished();
-    void onInstallationFinished();
-    void onInstallationFailed(QApt::ErrorCode errorCode);
+    void onChangeFinished();
+    void onChangeFailed(QApt::ErrorCode errorCode);
 
 private:
     /** Whether the Manager is ready (QApt needs to be inited) */

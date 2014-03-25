@@ -23,6 +23,11 @@ kubuntu-driver-manager (14.04ubuntu4) UNRELEASED; urgency=medium
     - New struct Device provides deep qdebug stream operators to debug
       stuff conveniently
     - Module includes have been cleaned up slightly
+    - Drivers are now not only installed, but also removed, this effectively
+      enables actual driver change as the way management works is that the
+      consideration is that only one driver is installed at a time (except for
+      the free version), which also is why manual always wins active
+      detection as it simply prevents any other driver from being considered.
 
  -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 25 Mar 2014 14:29:51 +0100
 

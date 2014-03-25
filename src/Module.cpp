@@ -89,11 +89,11 @@ Module::Module(QWidget *parent, const QVariantList &args)
     connect(m_manager, SIGNAL(devicesReady(DeviceList)),
             this, SLOT(onDevicesReady(DeviceList)));
 
-    connect(m_manager, SIGNAL(installationProgressChanged(int)),
+    connect(m_manager, SIGNAL(changeProgressChanged(int)),
             this, SLOT(progressChanged(int)));
-    connect(m_manager, SIGNAL(installationFinished()),
+    connect(m_manager, SIGNAL(changeFinished()),
             this, SLOT(finished()));
-    connect(m_manager, SIGNAL(installationFailed(QString)),
+    connect(m_manager, SIGNAL(changeFailed(QString)),
             this, SLOT(failed(QString)));
 }
 
@@ -121,6 +121,8 @@ void Module::load()
     ui->messageWidget->setText(i18nc("The backend is trying to figure out what drivers are suitable for the users system",
                                      "Collecting information about your system"));
     ui->messageWidget->animatedShow();
+
+    emit changed(false);
 }
 
 void Module::possiblyChanged()
@@ -137,12 +139,14 @@ void Module::possiblyChanged()
 
 void Module::save()
 {
-    QStringList packageList;
+    QStringList packageListToInstall;
+    QStringList packageListToRemove;
     foreach (const DriverWidget *widget, m_widgetList) {
-        packageList.append(widget->getSelectedPackageStr());
+        packageListToInstall.append(widget->selectedPackageName());
+        packageListToRemove.append(widget->notSelectedPackageNames());
     }
 
-#warning possibly need to connect
+    m_manager->changeDriverPackages(packageListToInstall, packageListToRemove, m_pipe);
 
     ui->progressBar->setVisible(true);
     disableUi();
@@ -183,10 +187,7 @@ void Module::disableUi()
 
 void Module::defaults()
 {
-    foreach (DriverWidget *widget, m_widgetList) {
-        widget->setDefaultSelection();
-    }
-    possiblyChanged();
+    load();
 }
 
 void Module::showDebconf()

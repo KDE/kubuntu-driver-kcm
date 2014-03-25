@@ -104,13 +104,24 @@ DriverWidget::~DriverWidget()
 }
 
 #warning dat name
-QString DriverWidget::getSelectedPackageStr() const
+QString DriverWidget::selectedPackageName() const
 {
     if (m_radioGroup->checkedButton()) {
         return m_radioGroup->checkedButton()->property("package").toString();
     }
 
     return QString();
+}
+
+QStringList DriverWidget::notSelectedPackageNames() const
+{
+    QStringList list;
+    foreach (const QAbstractButton *button, m_radioGroup->buttons()) {
+        if (button && button != m_radioGroup->checkedButton()) {
+            list.append(button->property("package").toString());
+        }
+    }
+    return list;
 }
 
 void DriverWidget::setDefaultSelection()

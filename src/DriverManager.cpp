@@ -68,32 +68,43 @@ void DriverManager::refresh()
             this, SLOT(onDevicesReady(QDBusPendingCallWatcher*)));
 }
 
-void DriverManager::installDriverPackages(QStringList driverPackageNames, QString debconfPipe)
+void DriverManager::changeDriverPackages(QStringList driverPackageNamesToInstall,
+                                         QStringList driverPackageNamesToRemove,
+                                         QString debconfPipe)
 {
-#warning one probably ought to remove shit somehow, otherwise there is no switcheroo of drivers actually happening
-    QApt::PackageList packages;
-    foreach (const QString &packageName, driverPackageNames) {
+    kDebug() << driverPackageNamesToInstall << driverPackageNamesToRemove;
+
+    foreach (const QString &packageName, driverPackageNamesToInstall) {
         QApt::Package *package = m_backend->package(packageName);
         if (package && !package->isInstalled()) {
-            packages.append(package);
+            kDebug() << "installing" << package->name() << "to satisfy request for" << packageName;
+            package->setInstall();
         }
     }
 
-    if (packages.length() == 0) {
+    foreach (const QString &packageName, driverPackageNamesToRemove) {
+        QApt::Package *package = m_backend->package(packageName);
+        if (package && package->isInstalled()) {
+            kDebug() << "removing" << package->name() << "to satisfy request for" << packageName;
+            package->setRemove();
+        }
+    }
+
+    if (m_backend->toInstallCount() == 0 && m_backend->toRemoveCount() == 0) {
         // Nothing to install; abort.
-        onInstallationFinished();
+        onChangeFinished();
         return;
     }
 
     Q_ASSERT(m_transaction == nullptr);
 
-    m_transaction = m_backend->installPackages(packages);
+    m_transaction = m_backend->commitChanges();
     if (!debconfPipe.isEmpty()) {
         m_transaction->setDebconfPipe(debconfPipe);
     }
-    connect(m_transaction, SIGNAL(progressChanged(int)), SIGNAL(installationProgressChanged(int)));
-    connect(m_transaction, SIGNAL(finished(QApt::ExitStatus)), SLOT(onInstallationFinished()));
-    connect(m_transaction, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(onInstallationFailed(QApt::ErrorCode)));
+    connect(m_transaction, SIGNAL(progressChanged(int)), SIGNAL(changeProgressChanged(int)));
+    connect(m_transaction, SIGNAL(finished(QApt::ExitStatus)), SLOT(onChangeFinished()));
+    connect(m_transaction, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(onChangeFailed(QApt::ErrorCode)));
     m_transaction->run();
 }
 
@@ -192,13 +203,13 @@ void DriverManager::onXapianUpdateFinished()
         refresh();
 }
 
-void DriverManager::onInstallationFinished()
+void DriverManager::onChangeFinished()
 {
     m_transaction = nullptr;
-    emit installationFinished();
+    emit changeFinished();
 }
 
-void DriverManager::onInstallationFailed(QApt::ErrorCode errorCode)
+void DriverManager::onChangeFailed(QApt::ErrorCode errorCode)
 {
     QString text;
 
@@ -262,5 +273,5 @@ void DriverManager::onInstallationFailed(QApt::ErrorCode errorCode)
     }
 
     m_transaction = nullptr;
-    emit installationFailed(text);
+    emit changeFailed(text);
 }

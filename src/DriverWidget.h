@@ -39,7 +39,11 @@ class DriverWidget : public QWidget
 public:
     DriverWidget(const Device &device, QWidget *parent = 0);
     ~DriverWidget();
-    QString getSelectedPackageStr() const;
+
+    QString selectedPackageName() const;
+    QStringList notSelectedPackageNames() const;
+
+
     void setDefaultSelection();
 
     bool hasChanged() const;
