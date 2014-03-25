@@ -20,6 +20,8 @@
 
 #include "Device.h"
 
+#include <QDebug>
+
 Driver::Driver()
     : packageName()
     , recommended(false)
@@ -27,6 +29,9 @@ Driver::Driver()
     , free(false)
     , builtin(false)
     , manualInstall(false)
+    // Set by manager; qapt dependent:
+    , fuzzyActive(false)
+    , package(nullptr)
 {
 }
 
@@ -49,6 +54,8 @@ QDebug operator<<(QDebug dbg, const Device &device)
         dbg.nospace() << " fromDistro[" << driver.fromDistro << "]";
         dbg.nospace() << " builtin[" << driver.builtin << "]";
         dbg.nospace() << " manualInstall[" << driver.manualInstall << "]";
+        dbg.nospace() << " fuzzyActive[" << driver.fuzzyActive << "]";
+        dbg.nospace() << " package[" << driver.package << "]";
         dbg.nospace() << ")";
     }
     dbg.nospace() << "\n)";

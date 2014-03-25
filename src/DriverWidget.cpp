@@ -29,77 +29,73 @@
 
 #include <KDebug>
 
-#include <LibQApt/Backend>
+#include <LibQApt/Package>
 
 #include "Device.h"
 
-DriverWidget::DriverWidget(const Device &device, QApt::Backend *backend, QWidget *parent)
+DriverWidget::DriverWidget(const Device &device, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Form)
-    , m_manualInstalled(false)
-    , m_nonFreeInstalled(false)
+    , m_radioGroup(new QButtonGroup(this))
 {
-    m_backend = backend;
     ui->setupUi(this);
     ui->label->setText(i18nc("%1 is hardware vendor, %2 is hardware model",
                              "<title>%1 %2</title>",
                              device.vendor,
                              device.model));
 
-    QRadioButton *button;
-    m_radioGroup = new QButtonGroup(this);
-
     // We want to sort drivers so they have consistent order across starts.
     QList<Driver> driverList = device.drivers;
     qSort(driverList);
 
-    foreach (const Driver &driver, device.drivers) {
-        const QApt::Package *package = m_backend->package(driver.packageName);
+    foreach (const Driver &driver, driverList) {
+        // This driver is not manual, but also has no package, hence we cannot
+        // do anything with it and should not display anything.
+        if (driver.package == nullptr && !driver.manualInstall){
+            kDebug() << "encountered invalid driver" << driver.package << driver.manualInstall << "for" << device.model;
+            continue;
+        }
 
-        if (package) {
-            QString driverString = i18nc("%1 is description and %2 is package name",
-                                            "Using %1 from %2",
-                                            package->shortDescription(),
-                                            package->name());
-            if (driver.recommended) {
-                driverString += i18nc("This particular driver is a recommended driver",
-                                                        " (Recommended Driver)");
-            }
+        QRadioButton *button = new QRadioButton(this);
+        button->setProperty("package", driver.packageName);
+        ui->verticalLayout->addWidget(button);
+        m_radioGroup->addButton(button);
 
-            button = new QRadioButton(driverString, this);
+        if (driver.fuzzyActive) {
+            button->setChecked(true);
+        }
 
-            if (driver.free) {
-                button->setToolTip(i18nc("The driver is under a open source license",
-                                         "Open Source Driver"));
-            } else {
-                button->setToolTip(i18nc("The driver is under a proprietary license",
-                                         "Proprietary Driver"));
-            }
+        if (driver.manualInstall) {
+            button->setText(i18nc("Manually installed 3rd party driver",
+                                  "This device is using a manually-installed driver : (%1)",
+                                  driver.packageName));
+            break; // Manually installed drivers have no additional information available.
+        }
 
-            button->setProperty("package", driver.packageName);
-            if (isActive(driver, package)) {
-                button->setChecked(true);
-            }
-            ui->verticalLayout->addWidget(button);
-            m_radioGroup->addButton(button);
-        } else {
-            // *Most* likely a manually installed driver. Check and add a Manual radio button
-            if (driver.manualInstall) {
-                m_manualInstalled = true;
-                button = new QRadioButton(i18nc("Manually installed 3rd party driver",
-                                                "This device is using a manually-installed driver : (%1)",
-                                                driver.packageName),
-                                          this);
-                button->setChecked(true);
-                ui->verticalLayout->addWidget(button);
-                m_radioGroup->addButton(button);
-            }
+        if (driver.recommended) {
+            button->setText(i18nc("%1 is description and %2 is package name; when driver is recommended for use",
+                                  "Using %1 from %2 (Recommended Driver)",
+                                  driver.package->shortDescription(),
+                                  driver.package->name()));
+        } else { // !recommended
+            button->setText(i18nc("%1 is description and %2 is package name",
+                                  "Using %1 from %2",
+                                  driver.package->shortDescription(),
+                                  driver.package->name()));
+        }
+
+        if (driver.free) {
+            button->setToolTip(i18nc("The driver is under a open source license",
+                                     "Open Source Driver"));
+        } else { // !free
+            button->setToolTip(i18nc("The driver is under a proprietary license",
+                                     "Proprietary Driver"));
         }
     }
 
     m_indexSelected = m_radioGroup->checkedId();
     m_defaultSelection = m_indexSelected;
-    connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(hasChanged(QAbstractButton*)));
+    connect(m_radioGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SIGNAL(selectionChanged()));
 }
 
 DriverWidget::~DriverWidget()
@@ -117,46 +113,19 @@ QString DriverWidget::getSelectedPackageStr() const
     return QString();
 }
 
-bool DriverWidget::isActive(const Driver &driver, const QApt::Package *package)
-{
-    // Nothing matters if manual driver or non free driver is installed
-#warning why are these cached at all
-    if (m_manualInstalled || m_nonFreeInstalled) {
-        return false;
-    }
-
-    // Handle non free and free drivers that are installed
-    if (package->isInstalled()) {
-        if (!driver.free) {
-            m_nonFreeInstalled = true;
-        }
-        return true;
-    }
-
-    return false;
-}
-
-void DriverWidget::hasChanged(QAbstractButton *button)
-{
-#warning the question is why
-    Q_UNUSED(button);
-
-    const int id = m_radioGroup->checkedId();
-
-    if (id != m_indexSelected) {
-        m_indexSelected = m_radioGroup->checkedId();
-        emit changed(true);
-    }
-
-    if (id == m_defaultSelection) {
-        emit changed(false);
-    }
-}
-
 void DriverWidget::setDefaultSelection()
 {
     QAbstractButton *defaultButton = m_radioGroup->button(m_defaultSelection);
     if (defaultButton) {
         defaultButton->setChecked(true);
     }
+}
+
+bool DriverWidget::hasChanged() const
+{
+    if (m_radioGroup->checkedId() /* current */ !=  /* reference */ m_indexSelected) {
+        return true;
+    }
+
+    return false;
 }

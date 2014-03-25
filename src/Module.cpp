@@ -32,14 +32,12 @@
 #include <KPixmapSequenceOverlayPainter>
 #include <DebconfGui.h>
 
-#include <QDBusMetaType>
+#include <QDir>
 #include <QLabel>
 #include <QUuid>
+#include <QStringBuilder>
 
-#include <LibQApt/Backend>
-#include <LibQApt/Transaction>
-
-#include "DriverMangerInterface.h"
+#include "DriverManager.h"
 #include "Version.h"
 
 K_PLUGIN_FACTORY_DECLARATION(KcmDriverFactory);
@@ -47,7 +45,7 @@ K_PLUGIN_FACTORY_DECLARATION(KcmDriverFactory);
 Module::Module(QWidget *parent, const QVariantList &args)
     : KCModule(KcmDriverFactory::componentData(), parent, args)
     , ui(new Ui::Module)
-    , m_backend(new QApt::Backend)
+    , m_manager(new DriverManager(this))
 {
     KAboutData *about = new KAboutData("kcm-driver-manager", 0,
                                        ki18n("Driver Manager"),
@@ -61,31 +59,17 @@ Module::Module(QWidget *parent, const QVariantList &args)
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
 
-    m_manager = new OrgKubuntuDriverManagerInterface("org.kubuntu.DriverManager", "/DriverManager", QDBusConnection::sessionBus(), this);
-    ui->setupUi(this);
-    connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(refreshDriverList()));
-
-    qDBusRegisterMetaType<DeviceList>();
-
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
 
-    QApt::FrontendCaps caps = (QApt::FrontendCaps)(QApt::DebconfCap);
-    m_backend->setFrontendCaps(caps);
-    if (!m_backend->init())
-        initError();
-
-    if (m_backend->xapianIndexNeedsUpdate()) {
-        m_backend->updateXapianIndex();
-        connect(m_backend, SIGNAL(xapianUpdateFinished()), SLOT(xapianUpdateFinished()));
-    } else {
-        xapianUpdateFinished();
-    }
+    ui->setupUi(this);
     ui->progressBar->setVisible(false);
+    connect(ui->reloadButton, SIGNAL(clicked(bool)), SLOT(load()));
 
     m_overlay = new KPixmapSequenceOverlayPainter(this);
     m_overlay->setWidget(this);
 
+#warning variable name
     QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
     m_label = new QLabel(label, this);
     m_label->hide();
@@ -99,6 +83,18 @@ Module::Module(QWidget *parent, const QVariantList &args)
     m_debconfGui->connect(m_debconfGui, SIGNAL(activated()), this, SLOT(showDebconf()));
     m_debconfGui->connect(m_debconfGui, SIGNAL(deactivated()), this, SLOT(hideDebconf()));
     m_debconfGui->hide();
+
+    connect(m_manager, SIGNAL(refreshFailed()),
+            this, SLOT(onRefreshFailed()));
+    connect(m_manager, SIGNAL(devicesReady(DeviceList)),
+            this, SLOT(onDevicesReady(DeviceList)));
+
+    connect(m_manager, SIGNAL(installationProgressChanged(int)),
+            this, SLOT(progressChanged(int)));
+    connect(m_manager, SIGNAL(installationFinished()),
+            this, SLOT(finished()));
+    connect(m_manager, SIGNAL(installationFailed(QString)),
+            this, SLOT(failed(QString)));
 }
 
 Module::~Module()
@@ -110,6 +106,16 @@ void Module::load()
 {
     kDebug();
 
+    qDeleteAll(m_widgetList);
+    m_widgetList.clear();
+
+    disableUi();
+    m_label->hide();
+
+    // We call refresh unconditionally because refresh has internal logic to make
+    // sure it gets executed if the manager ever reaches ready state.
+    m_manager->refresh();
+
     m_overlay->start();
     ui->messageWidget->setMessageType(KMessageWidget::Information);
     ui->messageWidget->setText(i18nc("The backend is trying to figure out what drivers are suitable for the users system",
@@ -117,42 +123,29 @@ void Module::load()
     ui->messageWidget->animatedShow();
 }
 
-void Module::emitDiff(bool hasChanged)
+void Module::possiblyChanged()
 {
-    emit changed(hasChanged);
-}
-
-void Module::refreshDriverList()
-{
-    kDebug();
-    ui->reloadButton->setEnabled(false);
-    qDeleteAll(m_widgetList);
-    m_widgetList.clear();
-    m_label->hide();
-    load();
+    foreach (const DriverWidget *widget, m_widgetList) {
+        if (widget->hasChanged()) {
+            // Found a widget that has changed, global state is changed; abort.
+            emit changed(true);
+            return;
+        }
+    }
+    emit changed(false);
 }
 
 void Module::save()
 {
-    QApt::PackageList packages;
-    Q_FOREACH(const DriverWidget* widget, m_widgetList) {
-        const QString pkgStr = widget->getSelectedPackageStr();
-        QApt::Package *pkg = m_backend->package(pkgStr);
-        if (pkg) {
-            if (!pkg->isInstalled()) {
-                packages.append(pkg);
-            }
-        }
+    QStringList packageList;
+    foreach (const DriverWidget *widget, m_widgetList) {
+        packageList.append(widget->getSelectedPackageStr());
     }
 
-    m_trans = m_backend->installPackages(packages);
-    m_trans->setDebconfPipe(m_pipe);
-    connect(m_trans, SIGNAL(progressChanged(int)), SLOT(progressChanged(int)));
-    connect(m_trans, SIGNAL(finished(QApt::ExitStatus)), SLOT(finished()));
-    connect(m_trans, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(handleError(QApt::ErrorCode)));
-    m_trans->run();
+#warning possibly need to connect
+
     ui->progressBar->setVisible(true);
-    ui->reloadButton->setEnabled(false);
+    disableUi();
 }
 
 void Module::progressChanged(int progress)
@@ -162,148 +155,38 @@ void Module::progressChanged(int progress)
 
 void Module::finished()
 {
-    cleanup();
-    refreshDriverList();
+    enableUi();
+    load();
 }
 
-void Module::handleError(QApt::ErrorCode error)
+void Module::failed(QString details)
 {
-    QString text;
-    switch(error) {
-        case QApt::InitError: {
-            text = i18nc("@label",
-                         "The package system could not be initialized, your "
-                         "configuration may be broken.");
-            break;
-        }
-
-        case QApt::LockError: {
-            text = i18nc("@label",
-                         "Another application seems to be using the package "
-                         "system at this time. You must close all other package "
-                         "managers before you will be able to install or remove "
-                         "any packages.");
-            break;
-        }
-
-        case QApt::DiskSpaceError: {
-            text = i18nc("@label",
-                         "You do not have enough disk space in the directory "
-                         "at %1 to continue with this operation.", m_trans->errorDetails());
-            break;
-        }
-
-        case QApt::FetchError: {
-            text = i18nc("@label",
-                         "Could not download packages");
-            break;
-        }
-
-        case QApt::CommitError: {
-            text = i18nc("@label", "An error occurred while applying changes:");
-            break;
-        }
-
-        case QApt::AuthError: {
-            text = i18nc("@label",
-                         "This operation cannot continue since proper "
-                         "authorization was not provided");
-            break;
-        }
-
-        case QApt::WorkerDisappeared: {
-            text = i18nc("@label", "It appears that the QApt worker has either crashed "
-            "or disappeared. Please report a bug to the QApt maintainers");
-            break;
-        }
-
-        case QApt::UntrustedError: {
-            QStringList untrustedItems = m_trans->untrustedPackages();
-            if (untrustedItems.size() == 1) {
-                text = i18ncp("@label",
-                              "The following package has not been verified by its author. "
-                              "Downloading untrusted packages has been disallowed "
-                              "by your current configuration.",
-                              "The following packages have not been verified by "
-                              "their authors. "
-                              "Downloading untrusted packages has "
-                              "been disallowed by your current configuration.",
-                              untrustedItems.size());
-            }
-            break;
-        }
-
-        case QApt::NotFoundError: {
-            text = i18nc("@label",
-                         "The package \"%1\" has not been found among your software sources. "
-                         "Therefore, it cannot be installed. ",
-                         m_trans->errorDetails());
-            break;
-        }
-
-        case QApt::UnknownError:
-        default:
-            break;
-    }
-
-    ui->messageWidget->setText(text);
+    enableUi();
+    ui->messageWidget->setText(details);
     ui->messageWidget->setMessageType(KMessageWidget::Error);
     ui->messageWidget->animatedShow();
-    emit changed(true);
-    cleanup();
+    load();
 }
 
-void Module::cleanup()
-{
-    m_backend->reloadCache();
-    ui->progressBar->setVisible(false);
-    ui->reloadButton->setEnabled(true);
-}
-
-void Module::initError()
-{
-    QString details = m_backend->initErrorMessage();
-
-    QString text = i18nc("@label",
-                         "The package system could not be initialized, your "
-                         "configuration may be broken.");
-    ui->messageWidget->setText(text);
-    ui->messageWidget->setToolTip(details);
-    ui->messageWidget->setMessageType(KMessageWidget::Error);
-    ui->messageWidget->animatedShow();
-}
-
-void Module::gotDevices(QDBusPendingCallWatcher *watcher)
+void Module::enableUi()
 {
     m_overlay->stop();
+    ui->progressBar->setVisible(false);
     ui->reloadButton->setEnabled(true);
-    ui->messageWidget->setCloseButtonVisible(true);
     ui->messageWidget->animatedHide();
+}
 
-    QDBusPendingReply<DeviceList> reply = *watcher;
-    if (reply.isError()) {
-        ui->messageWidget->setText(i18nc("The backend replied with a error",
-                                         "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
-        ui->messageWidget->setMessageType(KMessageWidget::Error);
-        ui->messageWidget->animatedShow();
-        return;
-    }
-
-    const DeviceList deviceList = reply.value();
-    foreach (const Device &device, deviceList) {
-        DriverWidget *widget = new DriverWidget(device, m_backend, this);
-        ui->driverOptionsVLayout->insertWidget(0, widget);
-        connect(widget, SIGNAL(changed(bool)), SLOT(emitDiff(bool)));
-        m_widgetList.append(widget);
-    }
-    watcher->deleteLater();
+void Module::disableUi()
+{
+    ui->reloadButton->setEnabled(false);
 }
 
 void Module::defaults()
 {
-    Q_FOREACH(DriverWidget *widget, m_widgetList) {
+    foreach (DriverWidget *widget, m_widgetList) {
         widget->setDefaultSelection();
     }
+    possiblyChanged();
 }
 
 void Module::showDebconf()
@@ -316,18 +199,34 @@ void Module::hideDebconf()
     m_debconfGui->hide();
 }
 
-void Module::xapianUpdateFinished()
+void Module::onQaptFailed(QString details)
 {
-    kDebug();
-    if(!m_backend->openXapianIndex()) {
-        ui->messageWidget->setText(i18nc("The xapian cache couldn't be opened", "The package search cache couldn't be opened"));
-        ui->messageWidget->setMessageType(KMessageWidget::Error);
-        return;
-    }
-
-    QDBusPendingReply<DeviceList> reply = m_manager->devices();
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
-            this, SLOT(gotDevices(QDBusPendingCallWatcher*)));
+    ui->messageWidget->setText(i18nc("@label",
+                                     "The package system could not be initialized, your "
+                                     "configuration may be broken."));
+    ui->messageWidget->setToolTip(details);
+    ui->messageWidget->setMessageType(KMessageWidget::Error);
+    ui->messageWidget->animatedShow();
 }
 
+void Module::onRefreshFailed()
+{
+    enableUi();
+
+    ui->messageWidget->setText(i18nc("The backend replied with a error",
+                                     "Something went terribly wrong. Please hit the 'Refresh Driver List' button"));
+    ui->messageWidget->setMessageType(KMessageWidget::Error);
+    ui->messageWidget->animatedShow();
+}
+
+void Module::onDevicesReady(DeviceList devices)
+{
+    enableUi();
+
+    foreach (const Device &device, devices) {
+        DriverWidget *widget = new DriverWidget(device, this);
+        ui->driverOptionsVLayout->insertWidget(0, widget);
+        connect(widget, SIGNAL(selectionChanged()), SLOT(possiblyChanged()));
+        m_widgetList.append(widget);
+    }
+}

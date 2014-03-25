@@ -1,8 +1,30 @@
 kubuntu-driver-manager (14.04ubuntu4) UNRELEASED; urgency=medium
 
   * Depend on python3-qt4 for the auto-quit logic in the helper LP: #1293948
+  * Refactor
+    - dbus helper now only has one function
+    - dbus interaction uses explicit type demarshalling
+    - new struct types Device and Driver representing the explicit dbus types
+    - new class DriverManager encorporating most logic bits of Module such as
+      dbus and qapt interaction
+    - DriverWidget QApt queries moved to DriverManager's dbus handling, but
+      continues to query qapt packages directly for name and such nonesense
+    - Manual driver listing is no longer explicitly dependent on package
+      findability
+    - DriverWidget changes detection now happen through iterative queries
+      in Module::possiblyChanged, fixing change tracking
+    - Module continues to contain Debconf handling, pipe id merely passed to
+      DriverManager
+    - New Module functions enableUi and disableUi containing reoccuring logic
+    - DriverWidget does not implicitly create left-to-right strings anymore
+    - Module::load is now the grand unified way to trigger a (re)load of data
+      while DriverManager::refresh synchronizes the reload requests with
+      QApt/Xapian init, fixing all likely and less likely init order problems
+    - New struct Device provides deep qdebug stream operators to debug
+      stuff conveniently
+    - Module includes have been cleaned up slightly
 
- -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 18 Mar 2014 13:41:04 +0100
+ -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 25 Mar 2014 14:29:51 +0100
 
 kubuntu-driver-manager (14.04ubuntu3) trusty; urgency=medium
 

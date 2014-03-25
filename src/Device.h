@@ -24,6 +24,10 @@
 #include <QDBusArgument>
 #include <QDebug>
 
+namespace QApt {
+class Package;
+}
+
 struct Driver
 {
     /** Constructor */
@@ -42,7 +46,14 @@ struct Driver
     /** driver was manually installed */
     bool manualInstall;
 
+    /** most likely the active driver; dependent on fuzzy heuristics */
+    bool fuzzyActive;
+
+    /** QApt package pointer or nullptr if not initalized or found */
+    QApt::Package *package;
+
     bool operator<(const Driver &other) const;
+
 };
 
 struct Device

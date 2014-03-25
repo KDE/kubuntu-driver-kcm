@@ -41,13 +41,11 @@ namespace DebconfKde {
     class DebconfGui;
 }
 
-class QDBusPendingCallWatcher;
-class OrgKubuntuDriverManagerInterface;
-class QButtonGroup;
-class QAbstractButton;
 class KPixmapSequenceOverlayPainter;
 class DriverWidget;
 class QLabel;
+
+class DriverManager;
 
 class Module : public KCModule
 {
@@ -84,29 +82,31 @@ public:
 private:
     /// UI
     Ui::Module *ui;
-    OrgKubuntuDriverManagerInterface* m_manager;
+
+    DriverManager *m_manager;
+
     QStringList m_ModuleList;
     QList<DriverWidget*> m_widgetList;
 
-    QApt::Backend *m_backend;
-    QApt::Transaction *m_trans;
     KPixmapSequenceOverlayPainter *m_overlay;
     QString m_pipe;
     QLabel *m_label;
     DebconfKde::DebconfGui* m_debconfGui;
-    void initError();
+
+    void enableUi();
+    void disableUi();
 
 private Q_SLOTS:
-    void gotDevices(QDBusPendingCallWatcher *watcher);
-    void refreshDriverList();
-    void emitDiff(bool);
+    void possiblyChanged();
     void progressChanged(int);
     void finished();
-    void handleError(QApt::ErrorCode);
-    void cleanup();
+    void failed(QString details);
     void showDebconf();
     void hideDebconf();
-    void xapianUpdateFinished();
+
+    void onQaptFailed(QString details);
+    void onRefreshFailed();
+    void onDevicesReady(DeviceList devices);
 };
 
 #endif // MODULE_H

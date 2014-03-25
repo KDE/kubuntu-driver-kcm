@@ -28,39 +28,27 @@ namespace Ui {
 class Form;
 }
 
-namespace QApt {
-class Backend;
-class Package;
-}
-
 class QButtonGroup;
 class QAbstractButton;
 
 class Device;
-class Driver;
 
 class DriverWidget : public QWidget
 {
     Q_OBJECT
 public:
-    DriverWidget(const Device &device, QApt::Backend *backend, QWidget *parent = 0);
+    DriverWidget(const Device &device, QWidget *parent = 0);
     ~DriverWidget();
     QString getSelectedPackageStr() const;
     void setDefaultSelection();
 
-signals:
-    void changed(bool);
+    bool hasChanged() const;
 
-private slots:
-    void hasChanged(QAbstractButton *button);
+signals:
+    void selectionChanged();
 
 private:
-    bool isActive(const Driver &driver, const QApt::Package *package);
-
     Ui::Form *ui;
-    bool m_manualInstalled;
-    bool m_nonFreeInstalled;
-    QApt::Backend *m_backend;
     QButtonGroup *m_radioGroup;
     int m_indexSelected;
     int m_defaultSelection;
