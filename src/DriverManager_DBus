@@ -33,7 +33,6 @@ class DriverManager(dbus.service.Object):
     __timer = None
 
     def __init__(self, session_bus, parent):
-        self.driver_map=detect.system_device_drivers()
         dbus.service.Object.__init__(self, session_bus,'/DriverManager')
         self.__timer = QTimer(parent)
         self.__timer.timeout.connect(parent.quit)
