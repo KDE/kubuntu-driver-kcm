@@ -1,3 +1,22 @@
+kubuntu-driver-manager (14.04ubuntu5) UNRELEASED; urgency=medium
+
+  * Fix dbus helper timing (hopefully)
+    + Don't query drivers-common in ctor for no reason (block startup and
+      everything).
+    + Force the connection from the timeout timer to qapp::quit to be queued
+      this gives us at least one additional loop run until it is actually
+      called (should not make much difference).
+    + Suspending and restart of the timeout timer is now done via a finally
+      statement, this is to ensure that return actually has finished by the
+      time we restart the timer as large chunks of data can take a while to
+      throw at the daemon etc.
+    = These changes combined should prevent the dbus helper from timing out
+      before the data has arrived or is sent. at the very least it makes a
+      system that previously had timeouts work even with a 5s timeout (i.e.
+      half of what we use in production).
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Wed, 02 Apr 2014 14:29:41 +0200
+
 kubuntu-driver-manager (14.04ubuntu4) trusty; urgency=medium
 
   * Depend on python3-qt4 for the auto-quit logic in the helper LP: #1293948

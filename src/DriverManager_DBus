@@ -24,7 +24,7 @@ import dbus
 import dbus.service
 import dbus.mainloop.qt
 from UbuntuDrivers import detect
-from PyQt4.QtCore import QCoreApplication, QTimer
+from PyQt4.QtCore import QCoreApplication, QTimer, Qt
 
 BUS_NAME = "org.kubuntu.DriverManager"
 
@@ -35,7 +35,7 @@ class DriverManager(dbus.service.Object):
     def __init__(self, session_bus, parent):
         dbus.service.Object.__init__(self, session_bus,'/DriverManager')
         self.__timer = QTimer(parent)
-        self.__timer.timeout.connect(parent.quit)
+        self.__timer.timeout.connect(parent.quit, Qt.QueuedConnection)
 	# Auto-terminate after 10 seconds in idle.
         self.__timer.setInterval(10*1000)
         self.__timer.start()
@@ -43,12 +43,14 @@ class DriverManager(dbus.service.Object):
     @dbus.service.method(BUS_NAME,
                          in_signature='', out_signature='a{sa{sv}}')
     def devices(self):
-        print("DriverManager_DBus::devices START")
-        self.__timer.stop();
-        ret = detect.system_device_drivers()
-        self.__timer.start();
-        print("DriverManager_DBus::devices END")
-        return ret;
+        try:
+            print("DriverManager_DBus::devices START")
+            self.__timer.stop();
+            ret = detect.system_device_drivers()
+            return ret;
+        finally:
+            print("DriverManager_DBus::devices END")
+            self.__timer.start();
 
 if __name__ == '__main__':
     app = QCoreApplication(sys.argv)
