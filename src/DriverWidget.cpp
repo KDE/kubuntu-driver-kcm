@@ -25,6 +25,7 @@
 
 #include <QString>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QButtonGroup>
 
 #include <KDebug>
@@ -56,7 +57,13 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
             continue;
         }
 
-        QRadioButton *button = new QRadioButton(this);
+        QAbstractButton *button;
+        if (driverList.count() <= 1 ) {
+            button = new QCheckBox(this);
+            m_radioGroup->setExclusive(false);
+        } else {
+            button = new QRadioButton(this);
+        }
         button->setProperty("package", driver.packageName);
         ui->verticalLayout->addWidget(button);
         m_radioGroup->addButton(button);
