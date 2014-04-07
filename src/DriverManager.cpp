@@ -24,6 +24,17 @@ DriverManager::DriverManager(QObject *parent)
 {
     qDBusRegisterMetaType<DeviceList>();
 
+    // Force no dbus timeout.
+    // There is exactly one method we use and it must always return. The only
+    // situations where it does not return are those when something is terribly
+    // wrong, however we cannot necessarily detect that with an async connection
+    // either, so instead of asyncyfing the connection, we simply force no timeout.
+    // TODO: this may be practical and equivalent to async connection
+    //       but is really shitty and should be replaced by async connections.
+    //       alas, those have their own unique problems with timer handling in
+    //       python...
+    m_manager->setTimeout(INT_MAX);
+
     if (!m_backend->init()) {
         emit qaptFailed(m_backend->initErrorMessage());
         return;

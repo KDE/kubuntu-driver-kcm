@@ -1,8 +1,14 @@
-kubuntu-driver-manager (14.04ubuntu6) UNRELEASED; urgency=medium
+kubuntu-driver-manager (14.04ubuntu6) trusty; urgency=medium
 
+  [ Rohan Garg ]
   * Use a checkbox when there's only one driver
 
- -- Rohan Garg <rohangarg@kubuntu.org>  Fri, 04 Apr 2014 18:22:26 +0200
+  [ Harald Sitter ]
+  * Set dbusinterface timeout to highest possible value to prevent timeouts
+    when the dbus helper is tediously slow (LP: #1303209)
+    Looking back that was probably why we opted for an async connection earlier
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Mon, 07 Apr 2014 14:50:32 +0200
 
 kubuntu-driver-manager (14.04ubuntu5) trusty; urgency=medium
 
