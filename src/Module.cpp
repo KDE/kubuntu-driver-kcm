@@ -222,6 +222,13 @@ void Module::onRefreshFailed()
 
 void Module::onDevicesReady(DeviceList devices)
 {
+    KConfig driver_manager("kcmdrivermanagerrc");
+    KConfigGroup pciGroup( &driver_manager, "PCI" );
+
+    foreach (Device device, devices) {
+        pciGroup.writeEntry(device.id, "true");
+    }
+
     enableUi();
 
     foreach (const Device &device, devices) {

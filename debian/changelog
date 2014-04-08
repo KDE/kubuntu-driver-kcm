@@ -1,3 +1,10 @@
+kubuntu-driver-manager (14.04ubuntu7) trusty; urgency=medium
+
+  * Bring back device notification persistency lost in refactoring
+    LP: #1304301
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 08 Apr 2014 12:05:27 +0200
+
 kubuntu-driver-manager (14.04ubuntu6) trusty; urgency=medium
 
   [ Rohan Garg ]
