@@ -139,6 +139,9 @@ void Module::possiblyChanged()
 
 void Module::save()
 {
+    ui->progressBar->setVisible(true);
+    disableUi();
+
     QStringList packageListToInstall;
     QStringList packageListToRemove;
     foreach (const DriverWidget *widget, m_widgetList) {
@@ -147,9 +150,6 @@ void Module::save()
     }
 
     m_manager->changeDriverPackages(packageListToInstall, packageListToRemove, m_pipe);
-
-    ui->progressBar->setVisible(true);
-    disableUi();
 }
 
 void Module::progressChanged(int progress)
@@ -178,10 +178,16 @@ void Module::enableUi()
     ui->progressBar->setVisible(false);
     ui->reloadButton->setEnabled(true);
     ui->messageWidget->animatedHide();
+    foreach (DriverWidget *widget, m_widgetList) {
+        widget->setSelectionEnabled(true);
+    }
 }
 
 void Module::disableUi()
 {
+    foreach (DriverWidget *widget, m_widgetList) {
+        widget->setSelectionEnabled(false);
+    }
     ui->reloadButton->setEnabled(false);
 }
 

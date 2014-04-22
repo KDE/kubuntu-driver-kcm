@@ -131,6 +131,13 @@ QStringList DriverWidget::notSelectedPackageNames() const
     return list;
 }
 
+void DriverWidget::setSelectionEnabled(bool enabled)
+{
+    foreach (QAbstractButton *button, m_radioGroup->buttons()) {
+        button->setEnabled(enabled);
+    }
+}
+
 void DriverWidget::setDefaultSelection()
 {
     QAbstractButton *defaultButton = m_radioGroup->button(m_defaultSelection);
