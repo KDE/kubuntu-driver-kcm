@@ -1,3 +1,9 @@
+kubuntu-driver-manager (14.10ubuntu1) UNRELEASED; urgency=medium
+
+  * Bumping version for 14.10.
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 22 Apr 2014 14:31:46 +0200
+
 kubuntu-driver-manager (14.04ubuntu7) trusty; urgency=medium
 
   * Bring back device notification persistency lost in refactoring
