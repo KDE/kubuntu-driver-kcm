@@ -52,6 +52,14 @@ DriverManager::DriverManager(QObject *parent)
     }
 }
 
+bool DriverManager::isActive() const
+{
+    if (m_transaction != nullptr) {
+        return true;
+    }
+    return false;
+}
+
 void DriverManager::refresh()
 {
     if (!m_ready) {

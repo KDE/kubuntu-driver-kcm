@@ -43,7 +43,7 @@ public:
     QString selectedPackageName() const;
     QStringList notSelectedPackageNames() const;
 
-
+    void setSelectionEnabled(bool enabled);
     void setDefaultSelection();
 
     bool hasChanged() const;

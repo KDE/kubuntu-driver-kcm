@@ -22,7 +22,7 @@ class DriverManager : public QObject
 public:
     DriverManager(QObject *parent = 0);
 
-    bool isReady() const;
+    bool isActive() const;
 
     /**
      * Refreshes the manager content.
@@ -84,6 +84,8 @@ private:
     OrgKubuntuDriverManagerInterface *m_manager;
 
     QApt::Backend *m_backend;
+
+    /** nullptr when the manager is idle, valid pointer when applying changes */
     QApt::Transaction *m_transaction;
 };
 
