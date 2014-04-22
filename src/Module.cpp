@@ -105,6 +105,10 @@ Module::~Module()
 void Module::load()
 {
     kDebug();
+    if (m_manager->isActive()) {
+        kDebug() << "aborting load because manager is active";
+        return;
+    }
 
     qDeleteAll(m_widgetList);
     m_widgetList.clear();

@@ -58,7 +58,7 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
         }
 
         QAbstractButton *button;
-        if (driverList.count() <= 1 ) {
+        if (driverList.count() <= 1) {
             button = new QCheckBox(this);
             m_radioGroup->setExclusive(false);
         } else {
