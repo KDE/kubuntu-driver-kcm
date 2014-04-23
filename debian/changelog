@@ -1,3 +1,12 @@
+kubuntu-driver-manager (14.04ubuntu9) UNRELEASED; urgency=medium
+
+  * DriverWidget: do not list builtin drivers as not selected.
+    + This avoids breaking the system by trying to remove essential packages
+      such as xserver-xorg-video-nouveau for being not selected.
+    LP: #1311583
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Wed, 23 Apr 2014 11:27:01 +0200
+
 kubuntu-driver-manager (14.04ubuntu8) trusty; urgency=medium
 
   * Prevent crashes by properly locking the GUI while applying changes
