@@ -1,11 +1,15 @@
-kubuntu-driver-manager (14.04ubuntu9) UNRELEASED; urgency=medium
+kubuntu-driver-manager (14.04ubuntu10) UNRELEASED; urgency=medium
 
+  [ Harald Sitter ]
   * DriverWidget: do not list builtin drivers as not selected.
     + This avoids breaking the system by trying to remove essential packages
       such as xserver-xorg-video-nouveau for being not selected.
     LP: #1311583
 
- -- Harald Sitter <apachelogger@kubuntu.org>  Wed, 23 Apr 2014 11:27:01 +0200
+  [ Rohan Garg ]
+  * Add a apport hook to provide more debug info when reporting bugs
+
+ -- Rohan Garg <rohangarg@kubuntu.org>  Wed, 23 Apr 2014 13:43:19 +0200
 
 kubuntu-driver-manager (14.04ubuntu8) trusty; urgency=medium
 

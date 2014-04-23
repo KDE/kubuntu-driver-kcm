@@ -29,6 +29,11 @@ Files: src/drivermanagerdbustypes.h
 Copyright: 2013 Daniel Schaal <farbing@web.de>
 License: LGPL-2+
 
+Files: apport/kubuntu-driver-manager.py
+Copyright: 2012 Martin Pitt <martin.pitt@ubuntu.com>
+           2014 Rohan Garg <rohangarg@kubuntu.org>
+License: GPL-2+
+
 Files: debian/*
 Copyright: 2014 Rohan Garg <rohangarg@kubuntu.org>
 License: GPL-2+
