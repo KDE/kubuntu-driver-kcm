@@ -127,7 +127,7 @@ QStringList DriverWidget::notSelectedPackageNames() const
     foreach (const QAbstractButton *button, m_radioGroup->buttons()) {
         if (button && button != m_radioGroup->checkedButton()) {
 #warning bloody hack, for one this devalues the method name, and for another we should stop using silly custom properties
-            // LP: #
+            // LP: #1311583
             if (!button->property("builtin").toBool()) {
                 list.append(button->property("package").toString());
             } else {
