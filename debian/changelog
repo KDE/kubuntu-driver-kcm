@@ -1,3 +1,9 @@
+kubuntu-driver-manager (14.04ubuntu10) UNRELEASED; urgency=medium
+
+  * Fix debug output typo s/beause/because/
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Thu, 24 Apr 2014 15:38:01 +0200
+
 kubuntu-driver-manager (14.04ubuntu9) trusty; urgency=medium
 
   [ Harald Sitter ]

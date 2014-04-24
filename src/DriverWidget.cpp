@@ -131,7 +131,7 @@ QStringList DriverWidget::notSelectedPackageNames() const
             if (!button->property("builtin").toBool()) {
                 list.append(button->property("package").toString());
             } else {
-                kDebug() << "not reporting" << button->property("package").toString() << "beause it is builtin";
+                kDebug() << "not reporting" << button->property("package").toString() << "because it is builtin";
             }
         }
     }
