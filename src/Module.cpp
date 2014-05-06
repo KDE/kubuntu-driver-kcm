@@ -247,4 +247,8 @@ void Module::onDevicesReady(DeviceList devices)
         connect(widget, SIGNAL(selectionChanged()), SLOT(possiblyChanged()));
         m_widgetList.append(widget);
     }
+
+    if (devices.empty()) {
+        m_label->show();
+    }
 }
