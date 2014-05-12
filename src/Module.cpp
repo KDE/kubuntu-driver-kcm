@@ -59,12 +59,6 @@ Module::Module(QWidget *parent, const QVariantList &args)
     about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
     setAboutData(about);
 
-    // Force libmuon as additional l10n catalog.
-    // This is necessary to introduce a new set of strings that previously only
-    // were available in muon and libmuon to resolve LP: #1315670 for 14.04 without
-    // ending up with untranslated strings.
-    KGlobal::locale()->insertCatalog(QLatin1String("libmuon"));
-
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
 
