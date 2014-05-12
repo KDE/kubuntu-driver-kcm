@@ -1,4 +1,4 @@
-kubuntu-driver-manager (14.04ubuntu10) UNRELEASED; urgency=medium
+kubuntu-driver-manager (14.04ubuntu10) trusty; urgency=medium
 
   * Fix debug output typo s/beause/because/
   * Implement QApt transaction prompt signals
