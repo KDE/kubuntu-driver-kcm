@@ -74,6 +74,11 @@ private slots:
     void onChangeFinished();
     void onChangeFailed(QApt::ErrorCode errorCode);
 
+    // Shamelessly stolen from libmuon.
+    void provideMedium(const QString &label, const QString &medium);
+    void untrustedPrompt(const QStringList &untrustedPackages);
+    void configFileConflict(const QString &currentPath, const QString &newPath);
+
 private:
     /** Whether the Manager is ready (QApt needs to be inited) */
     bool m_ready;

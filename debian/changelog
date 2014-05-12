@@ -6,6 +6,48 @@ kubuntu-driver-manager (14.10ubuntu1) UNRELEASED; urgency=medium
 
  -- Harald Sitter <apachelogger@kubuntu.org>  Tue, 22 Apr 2014 14:31:46 +0200
 
+kubuntu-driver-manager (14.04ubuntu10) trusty; urgency=medium
+
+  * Fix debug output typo s/beause/because/
+  * Implement QApt transaction prompt signals
+   + This adds three new qslots to drivermanager:
+     - provideMedium
+     - untrustedPrompt
+     - configFileConflict
+    + All three are copied from libmuon's ApplicationBackend and
+      adjusted in the least invasive manner
+    + All three trigger a KMessageBox to query the user for a decision on
+      the respective apt/dpkg-level issues
+    + The KMessageBoxes anchor to qApp::activeWindow as DriverManager is
+      supposed to not contain UI logic and as such has no explicit method
+      to get the master window id
+    + These slots add new strings that were previously not available for
+      translations, but should eventually get picked up by launchpad.
+    + Module.cpp manually adds 'libmuon' as a translation catalog to draw
+      translations from, while we have no translations of our own. This is
+      to prevent the newly introduced strings from going untranslated.
+      This relationship is not refelected on a packaging level since in due
+      time our own language-packages should contain translation, plus the
+      prompts are incredibly hard to trigger so even in an untranslated state
+      99.9% of users will not ever see them. If we can get the translations
+      from libmuon it's nice, if not we'll likely not care given the impact.
+    LP: #1315670
+
+ -- Harald Sitter <apachelogger@kubuntu.org>  Mon, 12 May 2014 13:16:26 +0200
+
+kubuntu-driver-manager (14.04ubuntu9) trusty; urgency=medium
+
+  [ Harald Sitter ]
+  * DriverWidget: do not list builtin drivers as not selected.
+    + This avoids breaking the system by trying to remove essential packages
+      such as xserver-xorg-video-nouveau for being not selected.
+    LP: #1311583
+
+  [ Rohan Garg ]
+  * Add a apport hook to provide more debug info when reporting bugs
+
+ -- Rohan Garg <rohangarg@kubuntu.org>  Wed, 23 Apr 2014 13:45:47 +0200
+
 kubuntu-driver-manager (14.04ubuntu8) trusty; urgency=medium
 
   * Prevent crashes by properly locking the GUI while applying changes

@@ -65,6 +65,7 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
             button = new QRadioButton(this);
         }
         button->setProperty("package", driver.packageName);
+        button->setProperty("builtin", driver.builtin);
         ui->verticalLayout->addWidget(button);
         m_radioGroup->addButton(button);
 
@@ -125,7 +126,13 @@ QStringList DriverWidget::notSelectedPackageNames() const
     QStringList list;
     foreach (const QAbstractButton *button, m_radioGroup->buttons()) {
         if (button && button != m_radioGroup->checkedButton()) {
-            list.append(button->property("package").toString());
+#warning bloody hack, for one this devalues the method name, and for another we should stop using silly custom properties
+            // LP: #1311583
+            if (!button->property("builtin").toBool()) {
+                list.append(button->property("package").toString());
+            } else {
+                kDebug() << "not reporting" << button->property("package").toString() << "because it is builtin";
+            }
         }
     }
     return list;

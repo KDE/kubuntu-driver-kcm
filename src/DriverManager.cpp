@@ -1,9 +1,12 @@
 #include "DriverManager.h"
 
+#include <QApplication>
 #include <QDBusMetaType>
 
 #include <KDebug>
+#include <KGuiItem>
 #include <KLocalizedString>
+#include <KMessageBox>
 
 #include <LibQApt/Backend>
 #include <LibQApt/Transaction>
@@ -124,6 +127,12 @@ void DriverManager::changeDriverPackages(QStringList driverPackageNamesToInstall
     connect(m_transaction, SIGNAL(progressChanged(int)), SIGNAL(changeProgressChanged(int)));
     connect(m_transaction, SIGNAL(finished(QApt::ExitStatus)), SLOT(onChangeFinished()));
     connect(m_transaction, SIGNAL(errorOccurred(QApt::ErrorCode)), SLOT(onChangeFailed(QApt::ErrorCode)));
+    //
+#warning FIXME: the interactive slots create kmessageboxes, dragging gui stuff into the manager
+    connect(m_transaction, SIGNAL(mediumRequired(QString,QString)), SLOT(provideMedium(QString,QString)));
+    connect(m_transaction, SIGNAL(promptUntrusted(QStringList)), SLOT(untrustedPrompt(QStringList)));
+    connect(m_transaction, SIGNAL(configFileConflict(QString,QString)), SLOT(configFileConflict(QString,QString)));
+    //
     m_transaction->run();
 }
 
@@ -293,4 +302,55 @@ void DriverManager::onChangeFailed(QApt::ErrorCode errorCode)
 
     m_transaction = nullptr;
     emit changeFailed(text);
+}
+
+void DriverManager::provideMedium(const QString &label, const QString &medium)
+{
+    QString title = i18nc("@title:window", "Media Change Required");
+    QString text = i18nc("@label", "Please insert %1 into <filename>%2</filename>",
+                         label, medium);
+
+    KMessageBox::information(qApp->activeWindow(), text, title);
+    m_transaction->provideMedium(medium);
+}
+
+void DriverManager::untrustedPrompt(const QStringList &untrustedPackages)
+{
+    QString title = i18nc("@title:window", "Warning - Unverified Software");
+    QString text = i18ncp("@label",
+                          "The following piece of software cannot be verified. "
+                          "<warning>Installing unverified software represents a "
+                          "security risk, as the presence of unverifiable software "
+                          "can be a sign of tampering.</warning> Do you wish to continue?",
+                          "The following pieces of software cannot be verified. "
+                          "<warning>Installing unverified software represents a "
+                          "security risk, as the presence of unverifiable software "
+                          "can be a sign of tampering.</warning> Do you wish to continue?",
+                          untrustedPackages.size());
+
+    int result = KMessageBox::warningContinueCancelList(qApp->activeWindow(),
+                                                        text, untrustedPackages, title);
+
+    bool installUntrusted = (result == KMessageBox::Continue);
+    m_transaction->replyUntrustedPrompt(installUntrusted);
+}
+
+void DriverManager::configFileConflict(const QString &currentPath, const QString &newPath)
+{
+    QString title = i18nc("@title:window", "Configuration File Changed");
+    QString text = i18nc("@label Notifies a config file change",
+                         "A new version of the configuration file "
+                         "<filename>%1</filename> is available, but your version has "
+                         "been modified. Would you like to keep your current version "
+                         "or install the new version?", currentPath);
+
+    KGuiItem useNew(i18nc("@action Use the new config file", "Use New Version"));
+    KGuiItem useOld(i18nc("@action Keep the old config file", "Keep Old Version"));
+
+    // TODO: diff current and new paths
+    Q_UNUSED(newPath)
+
+    int ret = KMessageBox::questionYesNo(qApp->activeWindow(), text, title, useNew, useOld);
+
+    m_transaction->resolveConfigFileConflict(currentPath, (ret == KMessageBox::Yes));
 }
