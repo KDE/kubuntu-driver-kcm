@@ -24,8 +24,6 @@
 
 #include <KCModule>
 
-#include <LibQApt/Globals>
-
 #include "drivermanagerdbustypes.h"
 
 namespace Ui {

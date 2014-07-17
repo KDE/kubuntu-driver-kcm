@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Service
 Icon=hwinfo
-Exec=kcmshell4 kcm_driver_manager
+Exec=kcmshell5 kcm_driver_manager
 
 X-KDE-Library=kcm_driver_manager
 X-KDE-ServiceTypes=KCModule

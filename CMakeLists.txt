@@ -1,16 +1,25 @@
 project(kcm-drivermanager)
 
-find_package(Qt4 4.7.0 REQUIRED)
+cmake_minimum_required(VERSION 2.8.12)
 
-find_package(KDE4 REQUIRED)
-include(KDE4Defaults)
+find_package(ECM 0.0.14 REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
-find_package(QApt)
+include(FeatureSummary)
+include(KDEInstallDirs)
+include(KDECMakeSettings)
+include(KDECompilerSettings)
+
+find_package(Qt5 5.0.0 CONFIG REQUIRED DBus)
+find_package(KF5 5.0.0 REQUIRED
+    COMPONENTS
+        Config
+        ConfigWidgets
+        I18n
+        TextWidgets)
+
+find_package(QApt REQUIRED)
 find_package(DebconfKDE REQUIRED)
-
-add_definitions(${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
-add_definitions(-std=c++0x)
-include_directories(${KDE4_INCLUDES} ${QT_INCLUDES} ${QAPT_INCLUDE_DIR})
 
 macro(dbus_add_activation_session_service _sources)
     foreach (_i ${_sources})

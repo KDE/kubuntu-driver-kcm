@@ -3,13 +3,13 @@
 #include <QApplication>
 #include <QDBusMetaType>
 
-#include <KDebug>
+#include <QDebug>
 #include <KGuiItem>
 #include <KLocalizedString>
 #include <KMessageBox>
 
-#include <LibQApt/Backend>
-#include <LibQApt/Transaction>
+#include <QApt/Backend>
+#include <QApt/Transaction>
 
 #include "DriverMangerInterface.h"
 
@@ -94,12 +94,12 @@ void DriverManager::changeDriverPackages(QStringList driverPackageNamesToInstall
                                          QStringList driverPackageNamesToRemove,
                                          QString debconfPipe)
 {
-    kDebug() << driverPackageNamesToInstall << driverPackageNamesToRemove;
+    qDebug() << driverPackageNamesToInstall << driverPackageNamesToRemove;
 
     foreach (const QString &packageName, driverPackageNamesToInstall) {
         QApt::Package *package = m_backend->package(packageName);
         if (package && !package->isInstalled()) {
-            kDebug() << "installing" << package->name() << "to satisfy request for" << packageName;
+            qDebug() << "installing" << package->name() << "to satisfy request for" << packageName;
             package->setInstall();
         }
     }
@@ -107,7 +107,7 @@ void DriverManager::changeDriverPackages(QStringList driverPackageNamesToInstall
     foreach (const QString &packageName, driverPackageNamesToRemove) {
         QApt::Package *package = m_backend->package(packageName);
         if (package && package->isInstalled()) {
-            kDebug() << "removing" << package->name() << "to satisfy request for" << packageName;
+            qDebug() << "removing" << package->name() << "to satisfy request for" << packageName;
             package->setRemove();
         }
     }
@@ -214,7 +214,7 @@ void DriverManager::onDevicesReady(QDBusPendingCallWatcher *watcher)
 
 void DriverManager::onXapianUpdateFinished()
 {
-    kDebug();
+    qDebug();
     if (!m_backend->openXapianIndex()) {
         // Xapian refresh failed, we have reached a fatal state.
         emit qaptFailed(QString());

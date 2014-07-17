@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include <LibQApt/Globals>
+#include <QApt/Globals>
 
 #include "Device.h"
 

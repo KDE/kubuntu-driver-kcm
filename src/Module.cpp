@@ -24,18 +24,22 @@
 
 #include "ui_Module.h"
 
-#include <KAboutData>
-#include <KDebug>
-#include <KPluginFactory>
-#include <KMessageBox>
-#include <KMessageWidget>
-#include <KPixmapSequenceOverlayPainter>
-#include <DebconfGui.h>
-
+#include <QDebug>
 #include <QDir>
 #include <QLabel>
 #include <QUuid>
 #include <QStringBuilder>
+
+#include <KAboutData>
+#include <KConfig>
+#include <KConfigGroup>
+#include <KLocalizedString>
+#include <KPluginFactory>
+#include <KMessageBox>
+#include <KMessageWidget>
+#include <KPixmapSequenceOverlayPainter>
+
+#include <DebconfGui.h>
 
 #include "DriverManager.h"
 #include "Version.h"
@@ -43,21 +47,21 @@
 K_PLUGIN_FACTORY_DECLARATION(KcmDriverFactory);
 
 Module::Module(QWidget *parent, const QVariantList &args)
-    : KCModule(KcmDriverFactory::componentData(), parent, args)
+    : KCModule(parent, args)
     , ui(new Ui::Module)
     , m_manager(new DriverManager(this))
 {
-    KAboutData *about = new KAboutData("kcm-driver-manager", 0,
-                                       ki18n("Driver Manager"),
-                                       global_s_versionStringFull,
-                                       KLocalizedString(),
-                                       KAboutData::License_GPL_V3,
-                                       ki18n("Copyright 2013 Rohan Garg"),
-                                       KLocalizedString(), QByteArray(),
-                                       "rohangarg@kubuntu.org");
+    KAboutData *aboutData = new KAboutData("kcm-driver-manager",
+                                    i18n("Driver Manager"),
+                                    global_s_versionStringFull,
+                                    QStringLiteral(""),
+                                    KAboutLicense::LicenseKey::GPL_V3,
+                                    i18n("Copyright 2013 Rohan Garg"));
 
-    about->addAuthor(ki18n("Rohan Garg"), ki18n("Author"), "rohangarg@kubuntu.org");
-    setAboutData(about);
+    aboutData->addAuthor(i18n("Rohan Garg"), i18n("Author"), QStringLiteral("rohangarg@kubuntu.org"));
+    aboutData->addAuthor(i18n("Harald Sitter"), i18n("Qt 5 port"), QStringLiteral("apachelogger@kubuntu.org"));
+
+    setAboutData(aboutData);
 
     // We have no help so remove the button from the buttons.
     setButtons(buttons() ^ KCModule::Help);
@@ -104,9 +108,9 @@ Module::~Module()
 
 void Module::load()
 {
-    kDebug();
+    qDebug();
     if (m_manager->isActive()) {
-        kDebug() << "aborting load because manager is active";
+        qDebug() << "aborting load because manager is active";
         return;
     }
 

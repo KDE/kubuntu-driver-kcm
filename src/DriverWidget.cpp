@@ -23,14 +23,15 @@
 
 #include "ui_DriverWidget.h"
 
+#include <QButtonGroup>
+#include <QCheckBox>
+#include <QDebug>
 #include <QString>
 #include <QRadioButton>
-#include <QCheckBox>
-#include <QButtonGroup>
 
-#include <KDebug>
+#include <KLocalizedString>
 
-#include <LibQApt/Package>
+#include <QApt/Package>
 
 #include "Device.h"
 
@@ -40,10 +41,10 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
     , m_radioGroup(new QButtonGroup(this))
 {
     ui->setupUi(this);
-    ui->label->setText(i18nc("%1 is hardware vendor, %2 is hardware model",
-                             "<title>%1 %2</title>",
-                             device.vendor,
-                             device.model));
+    ui->label->setText(xi18nc("%1 is hardware vendor, %2 is hardware model",
+                              "<title>%1 %2</title>",
+                              device.vendor,
+                              device.model));
 
     // We want to sort drivers so they have consistent order across starts.
     QList<Driver> driverList = device.drivers;
@@ -53,7 +54,7 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
         // This driver is not manual, but also has no package, hence we cannot
         // do anything with it and should not display anything.
         if (driver.package == nullptr && !driver.manualInstall){
-            kDebug() << "encountered invalid driver" << driver.package << driver.manualInstall << "for" << device.model;
+            qDebug() << "encountered invalid driver" << driver.package << driver.manualInstall << "for" << device.model;
             continue;
         }
 
@@ -131,7 +132,7 @@ QStringList DriverWidget::notSelectedPackageNames() const
             if (!button->property("builtin").toBool()) {
                 list.append(button->property("package").toString());
             } else {
-                kDebug() << "not reporting" << button->property("package").toString() << "because it is builtin";
+                qDebug() << "not reporting" << button->property("package").toString() << "because it is builtin";
             }
         }
     }
