@@ -74,7 +74,7 @@ Module::Module(QWidget *parent, const QVariantList &args)
     m_overlay->setWidget(this);
 
 #warning variable name
-    QString label = i18n("<title>Your computer requires no proprietary drivers</title>");
+    QString label = xi18n("<title>Your computer requires no proprietary drivers</title>");
     m_label = new QLabel(label, this);
     m_label->hide();
     ui->driverOptionsVLayout->addWidget(m_label);
