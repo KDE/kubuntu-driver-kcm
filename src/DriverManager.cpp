@@ -140,6 +140,7 @@ void DriverManager::onDevicesReady(QDBusPendingCallWatcher *watcher)
 {
     QDBusPendingReply<DeviceList> reply = *watcher;
     if (reply.isError()) {
+        qDebug() << "ERROR" << reply.error().name() << reply.error().message();
         emit refreshFailed();
         return;
     }
