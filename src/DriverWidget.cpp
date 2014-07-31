@@ -41,7 +41,7 @@ DriverWidget::DriverWidget(const Device &device, QWidget *parent)
     , m_radioGroup(new QButtonGroup(this))
 {
     ui->setupUi(this);
-    ui->label->setText(xi18nc("%1 is hardware vendor, %2 is hardware model",
+    ui->label->setText(xi18nc("@info %1 is hardware vendor, %2 is hardware model",
                               "<title>%1 %2</title>",
                               device.vendor,
                               device.model));
