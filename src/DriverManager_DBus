@@ -22,9 +22,9 @@ import sys
 
 import dbus
 import dbus.service
-import dbus.mainloop.qt
+import dbus.mainloop.pyqt5
 from UbuntuDrivers import detect
-from PyQt4.QtCore import QCoreApplication, QTimer, Qt
+from PyQt5.QtCore import QCoreApplication, QTimer, Qt
 
 BUS_NAME = "org.kubuntu.DriverManager"
 
@@ -54,7 +54,7 @@ class DriverManager(dbus.service.Object):
 
 if __name__ == '__main__':
     app = QCoreApplication(sys.argv)
-    dbus.mainloop.qt.DBusQtMainLoop(set_as_default=True)
+    dbus.mainloop.pyqt5.DBusQtMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
     name = dbus.service.BusName(BUS_NAME, bus)
     dbus_manager = DriverManager(session_bus=bus, parent=app)

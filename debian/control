@@ -15,7 +15,7 @@ X-Ubuntu-Use-Langpack: yes
 Package: kubuntu-driver-manager
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ubuntu-drivers-common, python3,
- python3-dbus.mainloop.qt, python3-pyqt4
+ python3-dbus.mainloop.pyqt5, python3-pyqt5
 Description: Driver Manager for Kubuntu
  Driver Manager provides a user interface for configuring third-party drivers,
  such as the Nvidia and ATI fglrx X.org and various Wireless LAN
