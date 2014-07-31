@@ -68,4 +68,4 @@ if __name__ == '__main__':
     bus = dbus.SessionBus()
     name = dbus.service.BusName(BUS_NAME, bus)
     dbus_manager = DriverManager(session_bus=bus, parent=app)
-    sys.exit(app.exec())
+    app.exec()
