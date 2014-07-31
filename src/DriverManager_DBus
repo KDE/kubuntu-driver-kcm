@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import sys
 
 import dbus
@@ -36,7 +37,7 @@ class DriverManager(dbus.service.Object):
         dbus.service.Object.__init__(self, session_bus,'/DriverManager')
         self.__timer = QTimer(parent)
         self.__timer.timeout.connect(parent.quit, Qt.QueuedConnection)
-	# Auto-terminate after 10 seconds in idle.
+        # Auto-terminate after 10 seconds in idle.
         self.__timer.setInterval(10*1000)
         self.__timer.start()
 
@@ -53,6 +54,15 @@ class DriverManager(dbus.service.Object):
             self.__timer.start();
 
 if __name__ == '__main__':
+    # When started through dbus we can have a very minimalistic path, make sure
+    # that we have the bare essentials available as otherwise tools used
+    # internally might not be available and cause errors.
+    os.environ['PATH'] = ':'.join(['/bin',
+                                   '/sbin',
+                                   '/usr/bin',
+                                   '/usr/sbin',
+                                   os.getenv('PATH')])
+
     app = QCoreApplication(sys.argv)
     dbus.mainloop.qt.DBusQtMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
