@@ -1,3 +1,3 @@
 [D-BUS Service]
 Name=org.kubuntu.DriverManager
-Exec=@KDE4_LIBEXEC_INSTALL_DIR@/DriverManager_DBus
+Exec=@CMAKE_INSTALL_PREFIX@/@LIBEXEC_INSTALL_DIR@/DriverManager_DBus
