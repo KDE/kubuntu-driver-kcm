@@ -1,6 +1,6 @@
-kubuntu-driver-manager (14.10ubuntu1) UNRELEASED; urgency=medium
+kubuntu-driver-manager (15.04ubuntu1) vivid; urgency=medium
 
-  * Bumping version for 14.10.
+  * Port to KDE Frameworks 5
   * Make sure the no-drivers-available label is shown when no drivers are there
     + LP: #1316563
 
