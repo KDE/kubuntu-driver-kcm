@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 9.0.0), cmake,
  libkf5textwidgets-dev,
  libqapt-dev,
  libdebconf-kde-dev
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://quickgit.kde.org/?p=scratch/garg/kcm-driver-manager.git
 X-Ubuntu-Use-Langpack: yes
 
