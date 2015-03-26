@@ -1,3 +1,10 @@
+kubuntu-driver-manager (15.04ubuntu3) vivid; urgency=medium
+
+  * Set the library translation domain so that the KCM actually loads
+    its translations
+
+ -- Harald Sitter <sitter@kde.org>  Thu, 26 Mar 2015 12:21:50 +0100
+
 kubuntu-driver-manager (15.04ubuntu2) vivid; urgency=medium
 
   * Add build-dep on extra-cmake-modules

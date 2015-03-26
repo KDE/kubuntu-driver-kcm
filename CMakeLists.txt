@@ -21,6 +21,9 @@ find_package(KF5 5.0.0 REQUIRED
 find_package(QApt REQUIRED)
 find_package(DebconfKDE REQUIRED)
 
+# KI18N Translation Domain for this library
+add_definitions(-DTRANSLATION_DOMAIN=\"kcm-driver-manager\")
+
 macro(dbus_add_activation_session_service _sources)
     foreach (_i ${_sources})
         get_filename_component(_service_file ${_i} ABSOLUTE)
