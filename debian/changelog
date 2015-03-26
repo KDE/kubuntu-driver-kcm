@@ -1,4 +1,4 @@
-kubuntu-driver-manager (15.04ubuntu2) UNRELEASED; urgency=medium
+kubuntu-driver-manager (15.04ubuntu2) vivid; urgency=medium
 
   * Add build-dep on extra-cmake-modules
 
