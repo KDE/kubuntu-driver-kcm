@@ -9,3 +9,14 @@ override_dh_auto_configure:
 
 override_dh_strip:
 	dh_strip --dbg-package=kubuntu-driver-manager-dbg
+
+kubuntu_rake:
+	rm -rf .kubuntu-rake
+	if [ -e .git ]; then \
+		git clone kde:scratch/sitter/kubuntu-rake .kubuntu-rake; \
+		cp .kubuntu-rake/Rakefile .; \
+	fi
+	[ -e Rakefile ] && rake
+
+override_dh_auto_clean: kubuntu_rake
+	dh_auto_clean

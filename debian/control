@@ -15,12 +15,15 @@ Build-Depends: cmake,
                pkg-kde-tools
 Standards-Version: 3.9.6
 Homepage: http://quickgit.kde.org/?p=scratch/garg/kcm-driver-manager.git
-X-Ubuntu-Use-Langpack: yes
 
 Package: kubuntu-driver-manager
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ubuntu-drivers-common, python3,
- python3-dbus.mainloop.pyqt5, python3-pyqt5
+Depends: python3,
+         python3-dbus.mainloop.pyqt5,
+         python3-pyqt5,
+         ubuntu-drivers-common,
+         ${misc:Depends},
+         ${shlibs:Depends}
 Description: Driver Manager for Kubuntu
  Driver Manager provides a user interface for configuring third-party drivers,
  such as the Nvidia and ATI fglrx X.org and various Wireless LAN
