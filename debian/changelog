@@ -1,3 +1,9 @@
+kubuntu-driver-manager (15.10ubuntu2) wily; urgency=medium
+
+  * Fix rules. "Make - Like Perl, but Worse"
+
+ -- Harald Sitter <sitter@kde.org>  Tue, 29 Sep 2015 11:22:59 +0200
+
 kubuntu-driver-manager (15.10ubuntu1) wily; urgency=medium
 
   * New release for 15.10, updating translations

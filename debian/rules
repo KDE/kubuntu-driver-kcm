@@ -16,7 +16,7 @@ kubuntu_rake:
 		git clone kde:scratch/sitter/kubuntu-rake .kubuntu-rake; \
 		cp .kubuntu-rake/Rakefile .; \
 	fi
-	[ -e Rakefile ] && rake
+	if [ -e Rakefile ]; then rake; fi
 
 override_dh_auto_clean: kubuntu_rake
 	dh_auto_clean
