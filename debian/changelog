@@ -1,3 +1,10 @@
+kubuntu-driver-manager (15.10ubuntu3) wily; urgency=medium
+
+  * Add I18n to target link libraries to get access to the KLocalizedString
+    header and fix a build failure
+
+ -- Harald Sitter <sitter@kde.org>  Wed, 30 Sep 2015 09:14:20 +0200
+
 kubuntu-driver-manager (15.10ubuntu2) wily; urgency=medium
 
   * Fix rules. "Make - Like Perl, but Worse"

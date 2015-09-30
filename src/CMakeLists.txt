@@ -22,6 +22,7 @@ add_library(kcm_driver_manager MODULE ${kcm_SRCS})
 target_link_libraries(kcm_driver_manager
     Qt5::DBus
     KF5::ConfigWidgets
+    KF5::I18n
     QApt::Main
     DebconfKDE::Main)
 
