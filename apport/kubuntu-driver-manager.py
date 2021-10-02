@@ -1,7 +1,7 @@
 # apport package hook for ubuntu-drivers-common
-# (c) 2012 Canonical Ltdt.
+# SPDX-FileCopyrightText: 2012 Canonical Ltdt.
 # Author: Martin Pitt <martin.pitt@ubuntu.com>
-# (c) 2014 Rohan Garg <rohangarg@kubuntu.org>
+# SPDX-FileCopyrightText: 2014 Rohan Garg <rohangarg@kubuntu.org>
 
 import apport.hookutils
 
